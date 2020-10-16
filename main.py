@@ -15,8 +15,8 @@ if __name__ == '__main__':
     #==========commands==========
 
     # pull data
-    # data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY, ticker='GOOGL', interval='1min')
-    # data_puller.pull_data()
+    data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY, ticker='GOOGL', interval='1min')
+    data_puller.pull_data()
 
     # parse data
     # bitcoin_parser = BitcoinParser()
@@ -37,7 +37,3 @@ if __name__ == '__main__':
 
     # execution length
     print('Program took:', ending_time-starting_time, 'to run.')
-
-
-
-
