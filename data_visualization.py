@@ -68,8 +68,12 @@ class GoogleVisualizer:
 
         # create and plot figure
         figure = dict(data=[open_trace, close_trace, high_trace, low_trace, volume_trace])
+        if self.parser_object.data_path == GlobalConfig.GOOGLE_DATA_PATH:
+            filename = 'All_in_one_plot.html'
+        else:
+            filename = 'All_in_one_plot_extended.html'
         po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
-                                              GlobalConfig.GOOGLE_STR, "All_in_one_plot.html"), auto_open=False)
+                                              GlobalConfig.GOOGLE_STR, filename), auto_open=False)
         print(datetime.now(), ': all_in_one_plot created.')
 
 

@@ -15,13 +15,15 @@ if __name__ == '__main__':
     #==========commands==========
 
     # pull data
-    # data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY, ticker='GOOGL', interval='1min')
-    # data_puller.pull_data()
+    data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
+                             ticker='GOOGL',
+                             interval='1min')
+    data_puller.pull_data()
 
     # parse data
     # bitcoin_parser = BitcoinParser()
     # bitcoin_parser.parse_bitcoin_data()
-    google_parser = GoogleParser()
+    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
     google_parser.parse_google_data()
 
     # visualize data

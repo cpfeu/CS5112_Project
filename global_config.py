@@ -4,8 +4,13 @@ class GlobalConfig:
 
     NUM_CPUs = LocalConfig.NUM_CPUs
     ALPHA_VANTAGE_API_KEY = LocalConfig.ALPHA_VANTAGE_API_KEY
+    ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY = LocalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY
     WORKING_DIR_PATH = LocalConfig.WORKING_DIR_PATH
     BASE_DATA_PATH = LocalConfig.BASE_DATA_PATH
+    SLICE_LIST = ['year1month1', 'year1month2', 'year1month3', 'year1month4', 'year1month5', 'year1month6',
+                  'year1month7', 'year1month8', 'year1month9', 'year1month10', 'year1month11', 'year1month12',
+                  'year2month1', 'year2month2', 'year2month3', 'year2month4', 'year2month5', 'year2month6',
+                  'year2month7', 'year2month8', 'year2month9', 'year2month10', 'year2month11', 'year2month12']
 
     # Bitcoin parameters
     BITCOIN_DATA_PATH = LocalConfig.BITCOIN_DATA_PATH
@@ -20,10 +25,6 @@ class GlobalConfig:
 
     # Google parameters
     GOOGLE_DATA_PATH = LocalConfig.GOOGLE_DATA_PATH
+    GOOGLE_DATA_EXTENDED_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
     GOOGLE_STR = 'Google'
     GOOGLE_TIME_STAMP_NAME_STR = 'date'
-    GOOGLE_OPEN_STR = '1. open'
-    GOOGLE_HIGH_STR = '2. high'
-    GOOGLE_LOW_STR = '3. low'
-    GOOGLE_CLOSE_STR = '4. close'
-    GOOGLE_VOLUME_STR = '5. volume'

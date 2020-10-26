@@ -58,15 +58,16 @@ class GoogleParser:
 
     def parse_google_data(self):
         self.data_pd = pd.read_csv(filepath_or_buffer=self.data_path, sep=',', header=0, index_col=False)
-        print(self.data_pd.columns)
+        column_names = self.data_pd.columns
         self.data_dict = self.data_pd.to_dict(orient='list')
         self.single_google_recording_list = []
-        for ts_idx, time_stamp in enumerate(self.data_dict.get(GlobalConfig.GOOGLE_TIME_STAMP_NAME_STR)):
-            open_val = self.data_dict.get(GlobalConfig.GOOGLE_OPEN_STR)[ts_idx]
-            close_val = self.data_dict.get(GlobalConfig.GOOGLE_CLOSE_STR)[ts_idx]
-            high_val = self.data_dict.get(GlobalConfig.GOOGLE_HIGH_STR)[ts_idx]
-            low_val = self.data_dict.get(GlobalConfig.GOOGLE_LOW_STR)[ts_idx]
-            volume_val = self.data_dict.get(GlobalConfig.GOOGLE_VOLUME_STR)[ts_idx]
+        for ts_idx, time_stamp in enumerate(self.data_dict.get(list(column_names)[0])):
+            open_val = self.data_dict.get(column_names[1])[ts_idx]
+            close_val = self.data_dict.get(column_names[2])[ts_idx]
+            high_val = self.data_dict.get(column_names[3])[ts_idx]
+            low_val = self.data_dict.get(column_names[4])[ts_idx]
+            volume_val = self.data_dict.get(column_names[5])[ts_idx]
+
             self.single_google_recording_list.append(self.SingleGoogleRecording(name='Google_USD',
                                                                                   time_stamp=time_stamp,
                                                                                   open=open_val,
