@@ -1,0 +1,10 @@
+
+# Directories
+algvenv/
+data/
+
+# Pyc Files
+*.pyc
+
+# Local Configs
+local_config.py
