@@ -4,6 +4,7 @@ from global_config import GlobalConfig
 from data_pulling import DataPuller
 from data_parsing import BitcoinParser, GoogleParser
 from data_visualization import BitcoinVisualizer, GoogleVisualizer
+from data_forecasting import SimpleExponentialSmoothing
 
 
 if __name__ == '__main__':
@@ -32,6 +33,10 @@ if __name__ == '__main__':
     google_visualizer = GoogleVisualizer(google_parser)
     google_visualizer.plot_all_in_one_chart()
 
+    # exponential smoothing model
+    exponential_smoothing_model = SimpleExponentialSmoothing(google_parser)
+    exponential_smoothing_model.initialize_model(horizon=7, train_test_split=0.5)
+    exponential_smoothing_model.predict()
 
     # ending time
     ending_time=datetime.now()

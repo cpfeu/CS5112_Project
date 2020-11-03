@@ -8,3 +8,6 @@ data/
 
 # Local Configs
 local_config.py
+
+# idea files
+.idea/
