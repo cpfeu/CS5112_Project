@@ -3,6 +3,7 @@ from global_config import GlobalConfig
 
 from data_pulling import DataPuller
 from data_parsing import BitcoinParser, GoogleParser
+from data_preprocessing import PreprocessorObject
 from data_visualization import BitcoinVisualizer, GoogleVisualizer
 
 
@@ -15,22 +16,34 @@ if __name__ == '__main__':
     #==========commands==========
 
     # pull data
-    data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
-                             ticker='GOOGL',
-                             interval='1min')
-    data_puller.pull_data()
+    # data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
+    #                          ticker='GOOGL',
+    #                          interval='1min')
+    # data_puller.pull_data()
 
     # parse data
-    # bitcoin_parser = BitcoinParser()
-    # bitcoin_parser.parse_bitcoin_data()
-    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
-    google_parser.parse_google_data()
+    bitcoin_parser = BitcoinParser()
+    bitcoin_parser.parse_bitcoin_data()
+    # google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
+    # google_parser.parse_google_data()
+
+    # preprocess data
+    bitcoin_preprocessor = PreprocessorObject(parser_object=bitcoin_parser)
+    bitcoin_preprocessor.moving_average(stock=GlobalConfig.BITCOIN_STR,
+                                        time_series=GlobalConfig.HIGH_STR,
+                                        window_size=5, weighted=True, weights=[0.2, 0.2, 0.2, 0.2, 0.2])
+    # google_preprocessor = PreprocessorObject(parser_object=google_parser)
+    # google_preprocessor.moving_average(stock=GlobalConfig.GOOGLE_STR,
+    #                                     time_series=GlobalConfig.HIGH_STR,
+    #                                     window_size=10001, weighted=False, weights=[])
 
     # visualize data
-    # bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser)
+    bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_preprocessor)
     # bitcoin_visualizer.plot_all_in_one_chart()
-    google_visualizer = GoogleVisualizer(google_parser)
-    google_visualizer.plot_all_in_one_chart()
+    bitcoin_visualizer.plot_moving_average(time_series=GlobalConfig.HIGH_STR)
+    # google_visualizer = GoogleVisualizer(google_parser, google_preprocessor)
+    # # google_visualizer.plot_all_in_one_chart()
+    # google_visualizer.plot_moving_average(time_series=GlobalConfig.HIGH_STR)
 
 
     # ending time
