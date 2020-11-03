@@ -40,7 +40,7 @@ class GlobalConfig:
     MOVING_AVG_STR = 'Moving_Average'
 
     # Time stamp string
-    TIMESTAMP_STR = 'Time stamp'
+    TIMESTAMP_STR = 'Time_Stamp'
 
 
 
