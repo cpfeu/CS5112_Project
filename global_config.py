@@ -29,3 +29,19 @@ class GlobalConfig:
     GOOGLE_DATA_EXTENDED_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
     GOOGLE_STR = 'Google'
     GOOGLE_TIME_STAMP_NAME_STR = 'date'
+
+    # Time series names in single recording object
+    OPEN_STR = 'open'
+    HIGH_STR = 'high'
+    LOW_STR = 'low'
+    CLOSE_STR = 'close'
+    VOLUME_STR = 'volume'
+
+    # Method Strings
+    MOVING_AVG_STR = 'Moving_Average'
+
+    # Time stamp string
+    TIMESTAMP_STR = 'Time stamp'
+
+
+
