@@ -40,37 +40,37 @@ class BitcoinVisualizer:
         print(datetime.now(), ': all_in_one_plot created.')
 
 
-    def plot_moving_average(self, time_series):
+    def plot_moving_average(self):
 
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
         for single_bitcoin_recording in self.parser_object.single_bitcoin_recording_list:
             time_stamp_list_original.append(single_bitcoin_recording.time_stamp)
-            if time_series == GlobalConfig.OPEN_STR:
+            if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
                 time_series_list_original.append(single_bitcoin_recording.open)
-            elif time_series == GlobalConfig.LOW_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
                 time_series_list_original.append(single_bitcoin_recording.low)
-            elif time_series == GlobalConfig.HIGH_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
                 time_series_list_original.append(single_bitcoin_recording.high)
-            elif time_series == GlobalConfig.CLOSE_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
                 time_series_list_original.append(single_bitcoin_recording.close)
-            elif time_series == GlobalConfig.VOLUME_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
                 time_series_list_original.append(single_bitcoin_recording.volume)
             else:
                 print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
 
-        time_series_list_ma = self.preprocessor_object.preprocessed_data_dict.\
-            get(GlobalConfig.MOVING_AVG_STR).get(time_series)
-        time_stamp_list_ma = self.preprocessor_object.preprocessed_data_dict.\
+        time_series_list_ma = self.preprocessor_object.moving_average_data_dict.\
+            get(GlobalConfig.MOVING_AVG_STR).get(self.preprocessor_object.time_series)
+        time_stamp_list_ma = self.preprocessor_object.moving_average_data_dict.\
             get(GlobalConfig.MOVING_AVG_STR).get(GlobalConfig.TIMESTAMP_STR)
 
         # create traces
-        open_trace_original = go.Scattergl(x=time_stamp_list_original, y=time_series_list_original,
-                                           mode='lines', name=time_series,
+        open_trace_original = go.Scattergl(x=time_stamp_list_original, y=time_series_list_original, mode='lines',
+                                           name=self.preprocessor_object.time_series,
                                            opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
-        open_trace_ma = go.Scattergl(x=time_stamp_list_ma, y=time_series_list_ma,
-                                     mode='lines', name='moving average',
+        open_trace_ma = go.Scattergl(x=time_stamp_list_ma, y=time_series_list_ma, mode='lines',
+                                     name='moving average - window size='+str(self.preprocessor_object.window_size),
                                      opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
 
         # design layout
@@ -131,37 +131,37 @@ class GoogleVisualizer:
 
 
 
-    def plot_moving_average(self, time_series):
+    def plot_moving_average(self):
 
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
         for single_google_recording in self.parser_object.single_google_recording_list:
             time_stamp_list_original.append(single_google_recording.time_stamp)
-            if time_series == GlobalConfig.OPEN_STR:
+            if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
                 time_series_list_original.append(single_google_recording.open)
-            elif time_series == GlobalConfig.LOW_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
                 time_series_list_original.append(single_google_recording.low)
-            elif time_series == GlobalConfig.HIGH_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
                 time_series_list_original.append(single_google_recording.high)
-            elif time_series == GlobalConfig.CLOSE_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
                 time_series_list_original.append(single_google_recording.close)
-            elif time_series == GlobalConfig.VOLUME_STR:
+            elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
                 time_series_list_original.append(single_google_recording.volume)
             else:
                 print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
 
-        time_series_list_ma = self.preprocessor_object.preprocessed_data_dict. \
-            get(GlobalConfig.MOVING_AVG_STR).get(time_series)
-        time_stamp_list_ma = self.preprocessor_object.preprocessed_data_dict. \
+        time_series_list_ma = self.preprocessor_object.moving_average_data_dict. \
+            get(GlobalConfig.MOVING_AVG_STR).get(self.preprocessor_object.time_series)
+        time_stamp_list_ma = self.preprocessor_object.moving_average_data_dict. \
             get(GlobalConfig.MOVING_AVG_STR).get(GlobalConfig.TIMESTAMP_STR)
 
         # create traces
         open_trace_original = go.Scattergl(x=time_stamp_list_original, y=time_series_list_original,
-                                           mode='lines', name=time_series,
+                                           mode='lines', name=self.preprocessor_object.time_series,
                                            opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
-        open_trace_ma = go.Scattergl(x=time_stamp_list_ma, y=time_series_list_ma,
-                                     mode='lines', name='moving average',
+        open_trace_ma = go.Scattergl(x=time_stamp_list_ma, y=time_series_list_ma, mode='lines',
+                                     name='moving average - window size='+str(self.preprocessor_object.window_size),
                                      opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
 
         # design layout

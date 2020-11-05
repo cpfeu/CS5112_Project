@@ -3,7 +3,7 @@ from global_config import GlobalConfig
 
 from data_pulling import DataPuller
 from data_parsing import BitcoinParser, GoogleParser
-from data_preprocessing import PreprocessorObject
+from data_preprocessing import MovingAverage
 from data_visualization import BitcoinVisualizer, GoogleVisualizer
 from data_forecasting import SimpleExponentialSmoothing
 
@@ -25,26 +25,30 @@ if __name__ == '__main__':
     # parse data
     bitcoin_parser = BitcoinParser()
     bitcoin_parser.parse_bitcoin_data()
-    # google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
-    # google_parser.parse_google_data()
+    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
+    google_parser.parse_google_data()
 
     # preprocess data
-    bitcoin_preprocessor = PreprocessorObject(parser_object=bitcoin_parser)
-    bitcoin_preprocessor.moving_average(stock=GlobalConfig.BITCOIN_STR,
-                                        time_series=GlobalConfig.HIGH_STR,
-                                        window_size=5, weighted=True, weights=[0.2, 0.2, 0.2, 0.2, 0.2])
-    # google_preprocessor = PreprocessorObject(parser_object=google_parser)
-    # google_preprocessor.moving_average(stock=GlobalConfig.GOOGLE_STR,
-    #                                     time_series=GlobalConfig.HIGH_STR,
-    #                                     window_size=10001, weighted=False, weights=[])
+    bitcoin_ma = MovingAverage(parser_object=bitcoin_parser,
+                               time_series=GlobalConfig.CLOSE_STR,
+                               window_size=7501,
+                               weighted=False,
+                               weights=[0.1, 0.2, 0.3, 0.4])
+    bitcoin_ma.calculate_moving_average()
+    google_ma = MovingAverage(parser_object=google_parser,
+                              time_series=GlobalConfig.CLOSE_STR,
+                              window_size=7501,
+                              weighted=False,
+                              weights=[0.1, 0.2, 0.3, 0.4])
+    google_ma.calculate_moving_average()
 
     # visualize data
-    bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_preprocessor)
+    bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_ma)
     # bitcoin_visualizer.plot_all_in_one_chart()
-    bitcoin_visualizer.plot_moving_average(time_series=GlobalConfig.HIGH_STR)
-    # google_visualizer = GoogleVisualizer(google_parser, google_preprocessor)
-    # # google_visualizer.plot_all_in_one_chart()
-    # google_visualizer.plot_moving_average(time_series=GlobalConfig.HIGH_STR)
+    bitcoin_visualizer.plot_moving_average()
+    google_visualizer = GoogleVisualizer(google_parser, google_ma)
+    # google_visualizer.plot_all_in_one_chart()
+    google_visualizer.plot_moving_average()
 
     # exponential smoothing model
     exponential_smoothing_model = SimpleExponentialSmoothing(google_parser)

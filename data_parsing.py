@@ -6,6 +6,7 @@ from global_config import GlobalConfig
 
 class BitcoinParser:
     def __init__(self, data_path=GlobalConfig.BITCOIN_DATA_PATH):
+        self.name = GlobalConfig.BITCOIN_STR
         self.data_path = data_path
         os.makedirs(os.path.join(GlobalConfig.WORKING_DIR_PATH, GlobalConfig.BITCOIN_STR), exist_ok=True)
 
@@ -42,6 +43,7 @@ class BitcoinParser:
 
 class GoogleParser:
     def __init__(self, data_path=GlobalConfig.GOOGLE_DATA_PATH):
+        self.name = GlobalConfig.GOOGLE_STR
         self.data_path = data_path
         os.makedirs(os.path.join(GlobalConfig.WORKING_DIR_PATH, GlobalConfig.GOOGLE_STR), exist_ok=True)
 
