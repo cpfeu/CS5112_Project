@@ -232,25 +232,28 @@ class GoogleVisualizer:
         print(datetime.now(), ': moving_average_plot created.')
 
 
-    def plot_kalman_filter(self):
+    def plot_kalman_filter(self, prediction_time):
 
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
-        for single_google_recording in self.parser_object.single_google_recording_list:
-            time_stamp_list_original.append(single_google_recording.time_stamp)
-            if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
-                time_series_list_original.append(single_google_recording.open)
-            elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
-                time_series_list_original.append(single_google_recording.low)
-            elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
-                time_series_list_original.append(single_google_recording.high)
-            elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
-                time_series_list_original.append(single_google_recording.close)
-            elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
-                time_series_list_original.append(single_google_recording.volume)
+        for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):
+            if idx % prediction_time == 0:
+                time_stamp_list_original.append(single_google_recording.time_stamp)
+                if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
+                    time_series_list_original.append(single_google_recording.open)
+                elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
+                    time_series_list_original.append(single_google_recording.low)
+                elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
+                    time_series_list_original.append(single_google_recording.high)
+                elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
+                    time_series_list_original.append(single_google_recording.close)
+                elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
+                    time_series_list_original.append(single_google_recording.volume)
+                else:
+                    print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
             else:
-                print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+                continue
 
         time_series_list_kalman = self.preprocessor_object.kalman_filter_dict. \
             get(GlobalConfig.KALMAN_FILTER).get(self.preprocessor_object.time_series)
