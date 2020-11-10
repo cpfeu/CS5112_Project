@@ -22,10 +22,10 @@ if __name__ == '__main__':
     # data_puller.pull_data()
 
     # parse data
-    bitcoin_parser = BitcoinParser()
-    bitcoin_parser.parse_bitcoin_data()
-    #google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
-    #google_parser.parse_google_data()
+    # bitcoin_parser = BitcoinParser()
+    # bitcoin_parser.parse_bitcoin_data()
+    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
+    google_parser.parse_google_data()
 
     # preprocess data
     #bitcoin_ma = MovingAverage(parser_object=bitcoin_parser,
@@ -34,10 +34,10 @@ if __name__ == '__main__':
     #                           weighted=False,
     #                           weights=[0.1, 0.2, 0.3, 0.4])
     #bitcoin_ma.calculate_moving_average()
-    bitcoin_kalman = KalmanFilter(parser_object=bitcoin_parser,
-                                  time_series=GlobalConfig.CLOSE_STR,
-                                  Q=1e-5, R=0.1**2, prediction_time=1000)
-    bitcoin_kalman.calculate_kalman_filter()
+    # bitcoin_kalman = KalmanFilter(parser_object=bitcoin_parser,
+    #                               time_series=GlobalConfig.CLOSE_STR,
+    #                               Q=1e-5, R=0.1**2, prediction_time=600)
+    # bitcoin_kalman.calculate_kalman_filter()
 
     #google_ma = MovingAverage(parser_object=google_parser,
     #                          time_series=GlobalConfig.CLOSE_STR,
@@ -45,16 +45,22 @@ if __name__ == '__main__':
     #                          weighted=False,
     #                          weights=[0.1, 0.2, 0.3, 0.4])
     #google_ma.calculate_moving_average()
+    google_kalman = KalmanFilter(parser_object=google_parser,
+                                 time_series=GlobalConfig.CLOSE_STR,
+                                 Q=1e-5, R=0.1**2, prediction_time=600)
+    google_kalman.calculate_kalman_filter()
 
     # visualize data
     # bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_ma)
-    bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_kalman)
+    # bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_kalman)
     # bitcoin_visualizer.plot_all_in_one_chart()
     #bitcoin_visualizer.plot_moving_average()
-    bitcoin_visualizer.plot_kalman_filter()
+    # bitcoin_visualizer.plot_kalman_filter()
     #google_visualizer = GoogleVisualizer(google_parser, google_ma)
+    google_visualizer = GoogleVisualizer(google_parser, google_kalman)
     # google_visualizer.plot_all_in_one_chart()
     #google_visualizer.plot_moving_average()
+    google_visualizer.plot_kalman_filter()
 
 
     # ending time

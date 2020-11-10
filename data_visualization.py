@@ -232,13 +232,13 @@ class GoogleVisualizer:
         print(datetime.now(), ': moving_average_plot created.')
 
 
-    def plot_kalman_filter(self, prediction_time):
+    def plot_kalman_filter(self):
 
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
         for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):
-            if idx % prediction_time == 0:
+            if idx % self.preprocessor_object.prediction_time == 0:
                 time_stamp_list_original.append(single_google_recording.time_stamp)
                 if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
                     time_series_list_original.append(single_google_recording.open)
