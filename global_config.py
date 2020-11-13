@@ -39,9 +39,11 @@ class GlobalConfig:
 
     # Method Strings
     MOVING_AVG_STR = 'Moving_Average'
+    KALMAN_FILTER = 'Kalman_Filter'
 
     # Time stamp string
     TIMESTAMP_STR = 'Time_Stamp'
+
 
 
 

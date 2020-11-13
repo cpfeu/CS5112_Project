@@ -83,5 +83,77 @@ class MovingAverage:
 
 
 
+class KalmanFilter():
+
+    def __init__(self, parser_object, time_series, Q, R, prediction_time):
+        self.parser_object = parser_object
+        self.time_series = time_series
+        self.Q = Q
+        self.R = R
+        self.prediction_time = prediction_time
+        self.kalman_filter_dict = dict({GlobalConfig.KALMAN_FILTER: {}})
+
+
+    def calculate_kalman_filter(self):
+
+        # extract recording list of respective stock
+        if self.parser_object.name == GlobalConfig.BITCOIN_STR:
+            recording_list = self.parser_object.single_bitcoin_recording_list
+        elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
+            recording_list = self.parser_object.single_google_recording_list
+        else:
+            print('Valid parameters for <stock> are "Bitcoin" and "Google".')
+            sys.exit(0)
+
+        # extract data
+        time_series_list_original = []
+        time_stamp_list_original = []
+        for idx, single_bitcoin_recording in enumerate(recording_list):
+            if idx % self.prediction_time == 0:
+                time_stamp_list_original.append(single_bitcoin_recording.time_stamp)
+                if self.time_series == GlobalConfig.OPEN_STR:
+                    time_series_list_original.append(single_bitcoin_recording.open)
+                elif self.time_series == GlobalConfig.LOW_STR:
+                    time_series_list_original.append(single_bitcoin_recording.low)
+                elif self.time_series == GlobalConfig.HIGH_STR:
+                    time_series_list_original.append(single_bitcoin_recording.high)
+                elif self.time_series == GlobalConfig.CLOSE_STR:
+                    time_series_list_original.append(single_bitcoin_recording.close)
+                elif self.time_series == GlobalConfig.VOLUME_STR:
+                    time_series_list_original.append(single_bitcoin_recording.volume)
+                else:
+                    print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+            else:
+                continue
+        # perform kalman filter
+        num_iterations = len(time_series_list_original)
+        z = time_series_list_original
+
+        # initialize empty arrays
+        x_hat = np.zeros(num_iterations)
+        x_hat_minus = np.zeros(num_iterations)
+        P = np.zeros(num_iterations)
+        P_minus = np.zeros(num_iterations)
+        K = np.zeros(num_iterations)
+
+        # initial guesses
+        x_hat[0] = 0
+        P[0] = 1
+
+        for k in range(1, num_iterations):
+
+            # time update
+            x_hat_minus[k] = x_hat[k-1]
+            P_minus[k] = P_minus[k-1] + self.Q
+
+            # measurement update
+            K[k] = P_minus[k] / (P_minus[k] + self.R)
+            x_hat[k] = x_hat_minus[k] + K[k]*(z[k]-x_hat_minus[k])
+            P[k] = (1-K[k]) * P_minus[k]
+
+        # update kalman_filter_dict
+        self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({self.time_series: x_hat})
+        self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({GlobalConfig.TIMESTAMP_STR: time_stamp_list_original})
+
 
 

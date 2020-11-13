@@ -88,6 +88,58 @@ class BitcoinVisualizer:
         print(datetime.now(), ': moving_average_plot created.')
 
 
+    def plot_kalman_filter(self):
+
+        # extract data
+        time_series_list_original = []
+        time_stamp_list_original = []
+        for idx, single_bitcoin_recording in enumerate(self.parser_object.single_bitcoin_recording_list):
+            if idx % self.preprocessor_object.prediction_time == 0:
+                time_stamp_list_original.append(single_bitcoin_recording.time_stamp)
+                if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
+                    time_series_list_original.append(single_bitcoin_recording.open)
+                elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
+                    time_series_list_original.append(single_bitcoin_recording.low)
+                elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
+                    time_series_list_original.append(single_bitcoin_recording.high)
+                elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
+                    time_series_list_original.append(single_bitcoin_recording.close)
+                elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
+                    time_series_list_original.append(single_bitcoin_recording.volume)
+                else:
+                    print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+            else:
+                continue
+
+        time_series_list_kalman = self.preprocessor_object.kalman_filter_dict. \
+            get(GlobalConfig.KALMAN_FILTER).get(self.preprocessor_object.time_series)
+        time_stamp_list_kalman = self.preprocessor_object.kalman_filter_dict. \
+            get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+
+        # create traces
+        open_trace_original = go.Scattergl(x=time_stamp_list_original, y=time_series_list_original, mode='lines',
+                                           name=self.preprocessor_object.time_series,
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        open_trace_kalman = go.Scattergl(x=time_stamp_list_kalman, y=time_series_list_kalman, mode='lines',
+                                     name='kalman filter',
+                                     opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+
+        # design layout
+        layout = dict(title='Bitcoin Kalman Filter',
+                      xaxis=dict(title='Time',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[open_trace_original, open_trace_kalman], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.BITCOIN_STR, "kalman_filter_plot.html"),
+                auto_open=False)
+        print(datetime.now(), ': kalman_filter_plot created.')
+
+
 
 
 
@@ -178,6 +230,58 @@ class GoogleVisualizer:
                                               GlobalConfig.GOOGLE_STR, "moving_average_plot.html"),
                 auto_open=False)
         print(datetime.now(), ': moving_average_plot created.')
+
+
+    def plot_kalman_filter(self):
+
+        # extract data
+        time_series_list_original = []
+        time_stamp_list_original = []
+        for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):
+            if idx % self.preprocessor_object.prediction_time == 0:
+                time_stamp_list_original.append(single_google_recording.time_stamp)
+                if self.preprocessor_object.time_series == GlobalConfig.OPEN_STR:
+                    time_series_list_original.append(single_google_recording.open)
+                elif self.preprocessor_object.time_series == GlobalConfig.LOW_STR:
+                    time_series_list_original.append(single_google_recording.low)
+                elif self.preprocessor_object.time_series == GlobalConfig.HIGH_STR:
+                    time_series_list_original.append(single_google_recording.high)
+                elif self.preprocessor_object.time_series == GlobalConfig.CLOSE_STR:
+                    time_series_list_original.append(single_google_recording.close)
+                elif self.preprocessor_object.time_series == GlobalConfig.VOLUME_STR:
+                    time_series_list_original.append(single_google_recording.volume)
+                else:
+                    print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+            else:
+                continue
+
+        time_series_list_kalman = self.preprocessor_object.kalman_filter_dict. \
+            get(GlobalConfig.KALMAN_FILTER).get(self.preprocessor_object.time_series)
+        time_stamp_list_kalman = self.preprocessor_object.kalman_filter_dict. \
+            get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+
+        # create traces
+        open_trace_original = go.Scattergl(x=time_stamp_list_original, y=time_series_list_original, mode='lines',
+                                           name=self.preprocessor_object.time_series,
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        open_trace_kalman = go.Scattergl(x=time_stamp_list_kalman, y=time_series_list_kalman, mode='lines',
+                                     name='kalman filter',
+                                     opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+
+        # design layout
+        layout = dict(title='Google Kalman Filter',
+                      xaxis=dict(title='Time',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[open_trace_original, open_trace_kalman], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.GOOGLE_STR, "kalman_filter_plot.html"),
+                auto_open=False)
+        print(datetime.now(), ': kalman_filter_plot created.')
 
 
 
