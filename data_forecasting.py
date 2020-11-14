@@ -1,13 +1,3 @@
-'''
-
-ARIMA
-SARIMA
-Moving Average Models
-ETS Models
-Vector Autoregression
-Support Vector Autoregression
-
-'''
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
@@ -90,11 +80,11 @@ class SimpleExponentialSmoothing:
     def triple_exponential_smoothing(self, series, t, horizon, alpha=0.3, beta=0.3, gamma=0.3):
         result = [0, series[0]]
         smooth = series[0]
-        trend = self.initial_trend(series, t)
-        seasonals = self.initial_seasonal_components(series, t)
-        seasonals.append(seasonals[0]) # To make the seasonals elements align with series elements
+        trend = self.trend(series, t)
+        seasonals = self.create_seasonals(series, t)
+        seasonals.append(seasonals[0])
         for n in range(1, len(series)+horizon-1):
-            if n >= len(series): # we are forecasting
+            if n >= len(series):
                 m = n - len(series) + 2
                 result.append(smooth + m*trend + seasonals[n+1])
             else:
@@ -106,23 +96,22 @@ class SimpleExponentialSmoothing:
 
         return result[len(series):len(series)+horizon]
 
-    def initial_seasonal_components(self, series, t):
-        seasonals = []
-        season_averages = []
-        n_seasons = int(len(series)/t)
-        for j in range(n_seasons):
-            season_averages.append(sum(series[t*j:t*j+t])/float(t))
+    def create_seasonals(self, series, t):
+        avgs, snls = [], []
+        n = int(len(series)/t)
+        for j in range(n):
+            avgs.append(sum(series[t*j:t*j+t])/float(t))
         for i in range(t):
             sum_of_vals_over_avg = 0.0
-            for j in range(n_seasons):
-                sum_of_vals_over_avg += series[t*j+i]-season_averages[j]
-            seasonals.append(sum_of_vals_over_avg/n_seasons)
-        return seasonals
+            for j in range(n):
+                sum_of_vals_over_avg += series[t*j+i]-avgs[j]
+            snls.append(sum_of_vals_over_avg/n)
+        return snls
 
-    def initial_trend(self, series, t):
+    def trend(self, series, t):
         sum = 0.0
         for i in range(t):
-            sum += float(series[i+t] - series[i]) / t
+            sum = sum + (float(series[i+t] - series[i]) / t)
         return sum / t
 
     def predict(self, seasons=4, alpha=0.5, beta=0.5, gamma=0.5, type="single"):
@@ -151,19 +140,18 @@ class Arima:
         self.series = close_list
 
     def parameter_tune(self, train_size):
-        x = self.series
-        size = int(len(x) * train_size)
-        train, test = x[0:size], x[size:len(x)]
-        history = [x for x in train]
+        series = self.series
+        size = int(len(series) * train_size)
+        tr, te = series[0:size], series[size:len(x)]
+        hist = [x for x in train]
         predictions = []
-        for t in range(len(test)):
-            model = ARIMA(history, order=(5, 1, 0))
+        for timestamp in range(len(te)):
+            model = ARIMA(hist, order=(5, 1, 0))
             model_fit = model.fit(disp=0)
             output = model_fit.forecast()
-            yhat = output[0]
-            predictions.append(yhat)
-            obs = test[t]
-            history.append(obs)
-            print("Predicted-%f expected-%f" % (yhat, obs))
-        error = mean_squared_error(test, predictions)
-        print("Test MSE: %.3f" % error)
+            y = output[0]
+            predictions.append(y)
+            obs = te[timestamp]
+            hist.append(obs)
+        error = mean_squared_error(te, predictions)
+        return predictions

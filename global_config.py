@@ -7,7 +7,6 @@ class GlobalConfig:
     ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY = LocalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY
     WORKING_DIR_PATH = LocalConfig.WORKING_DIR_PATH
     BASE_DATA_PATH = LocalConfig.BASE_DATA_PATH
-    BASE_DATA_PATH_EXTENDED = LocalConfig.BASE_DATA_PATH_EXTENDED
     SLICE_LIST = ['year1month1', 'year1month2', 'year1month3', 'year1month4', 'year1month5', 'year1month6',
                   'year1month7', 'year1month8', 'year1month9', 'year1month10', 'year1month11', 'year1month12',
                   'year2month1', 'year2month2', 'year2month3', 'year2month4', 'year2month5', 'year2month6',
@@ -43,7 +42,3 @@ class GlobalConfig:
 
     # Time stamp string
     TIMESTAMP_STR = 'Time_Stamp'
-
-
-
-

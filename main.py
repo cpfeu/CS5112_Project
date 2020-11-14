@@ -17,10 +17,10 @@ if __name__ == '__main__':
     #==========commands==========
 
     # pull data
-    # data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
-    #                          ticker='GOOGL',
-    #                          interval='1min')
-    # data_puller.pull_data()
+    data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
+                              ticker='GOOGL',
+                              interval='1min')
+    data_puller.pull_data()
 
     # parse data
     # bitcoin_parser = BitcoinParser()
@@ -40,12 +40,12 @@ if __name__ == '__main__':
     #                               Q=1e-5, R=0.1**2, prediction_time=600)
     # bitcoin_kalman.calculate_kalman_filter()
 
-    #google_ma = MovingAverage(parser_object=google_parser,
-    #                          time_series=GlobalConfig.CLOSE_STR,
-    #                          window_size=7501,
-    #                          weighted=False,
-    #                          weights=[0.1, 0.2, 0.3, 0.4])
-    #google_ma.calculate_moving_average()
+    google_ma = MovingAverage(parser_object=google_parser,
+                              time_series=GlobalConfig.CLOSE_STR,
+                              window_size=7501,
+                              weighted=False,
+                              weights=[0.1, 0.2, 0.3, 0.4])
+    google_ma.calculate_moving_average()
     google_kalman = KalmanFilter(parser_object=google_parser,
                                  time_series=GlobalConfig.CLOSE_STR,
                                  Q=1e-5, R=0.1**2, prediction_time=600)
