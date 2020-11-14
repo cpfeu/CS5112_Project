@@ -5,7 +5,7 @@ from data_pulling import DataPuller
 from data_parsing import BitcoinParser, GoogleParser
 from data_preprocessing import MovingAverage, KalmanFilter
 from data_visualization import BitcoinVisualizer, GoogleVisualizer
-from data_forecasting import SimpleExponentialSmoothing
+from data_forecasting import SimpleExponentialSmoothing, Arima
 
 
 if __name__ == '__main__':
@@ -59,14 +59,17 @@ if __name__ == '__main__':
     # bitcoin_visualizer.plot_kalman_filter()
     #google_visualizer = GoogleVisualizer(google_parser, google_ma)
     google_visualizer = GoogleVisualizer(google_parser, google_kalman)
-    # google_visualizer.plot_all_in_one_chart()
+    #google_visualizer.plot_all_in_one_chart()
     #google_visualizer.plot_moving_average()
     google_visualizer.plot_kalman_filter()
 
     # exponential smoothing model
     exponential_smoothing_model = SimpleExponentialSmoothing(google_parser)
-    exponential_smoothing_model.initialize_model(horizon=7, train_test_split=0.5)
-    exponential_smoothing_model.predict()
+    #exponential_smoothing_model.predict(type="single")
+    #exponential_smoothing_model.predict(type="double")
+    #exponential_smoothing_model.predict(type="triple")
+    #arima = Arima(google_parser)
+    #arima.parameter_tune(0.66)
 
     # ending time
     ending_time=datetime.now()
@@ -74,7 +77,3 @@ if __name__ == '__main__':
 
     # execution length
     print('Program took:', ending_time-starting_time, 'to run.')
-
-
-
-
