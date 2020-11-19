@@ -1,6 +1,8 @@
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 from global_config import GlobalConfig
+from statsmodels.tsa.seasonal import seasonal_decompose
 
 '''
 
@@ -22,6 +24,7 @@ class MovingAverage:
         self.weighted = weighted
         self.weights = weights
         self.moving_average_data_dict = dict({GlobalConfig.MOVING_AVG_STR: {}})
+
 
     def calculate_moving_average(self):
 
@@ -108,33 +111,37 @@ class KalmanFilter():
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
-        for idx, single_bitcoin_recording in enumerate(recording_list):
+        for idx, single_recording in enumerate(recording_list):
             if idx % self.prediction_time == 0:
-                time_stamp_list_original.append(single_bitcoin_recording.time_stamp)
+                time_stamp_list_original.append(single_recording.time_stamp)
                 if self.time_series == GlobalConfig.OPEN_STR:
-                    time_series_list_original.append(single_bitcoin_recording.open)
+                    time_series_list_original.append(single_recording.open)
                 elif self.time_series == GlobalConfig.LOW_STR:
-                    time_series_list_original.append(single_bitcoin_recording.low)
+                    time_series_list_original.append(single_recording.low)
                 elif self.time_series == GlobalConfig.HIGH_STR:
-                    time_series_list_original.append(single_bitcoin_recording.high)
+                    time_series_list_original.append(single_recording.high)
                 elif self.time_series == GlobalConfig.CLOSE_STR:
-                    time_series_list_original.append(single_bitcoin_recording.close)
+                    time_series_list_original.append(single_recording.close)
                 elif self.time_series == GlobalConfig.VOLUME_STR:
-                    time_series_list_original.append(single_bitcoin_recording.volume)
+                    time_series_list_original.append(single_recording.volume)
                 else:
                     print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
             else:
                 continue
+
         # perform kalman filter
         num_iterations = len(time_series_list_original)
         z = time_series_list_original
 
+        '''
+        https://www.kaggle.com/residentmario/kalman-filters
+        '''
         # initialize empty arrays
-        x_hat = np.zeros(num_iterations)
-        x_hat_minus = np.zeros(num_iterations)
-        P = np.zeros(num_iterations)
-        P_minus = np.zeros(num_iterations)
-        K = np.zeros(num_iterations)
+        x_hat = np.zeros(num_iterations)        # a posteri estimate of x
+        x_hat_minus = np.zeros(num_iterations)  # a priori estimate of x
+        P = np.zeros(num_iterations)            # a posteri error estimate
+        P_minus = np.zeros(num_iterations)      # a priori error estimate
+        K = np.zeros(num_iterations)            # gain or blending factor
 
         # initial guesses
         x_hat[0] = 0
@@ -144,16 +151,102 @@ class KalmanFilter():
 
             # time update
             x_hat_minus[k] = x_hat[k-1]
-            P_minus[k] = P_minus[k-1] + self.Q
+            P_minus[k] = P[k-1] + self.Q
 
             # measurement update
             K[k] = P_minus[k] / (P_minus[k] + self.R)
             x_hat[k] = x_hat_minus[k] + K[k]*(z[k]-x_hat_minus[k])
             P[k] = (1-K[k]) * P_minus[k]
 
+
         # update kalman_filter_dict
         self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({self.time_series: x_hat})
         self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({GlobalConfig.TIMESTAMP_STR: time_stamp_list_original})
+
+
+
+class DecomposeTimeSeries():
+
+    def __init__(self, parser_object, time_series, decompose_model, period):
+        self.parser_object = parser_object
+        self.time_series = time_series
+        self.decompose_model = decompose_model
+        self.period = period
+        self.decomposed_time_series = None
+
+
+    def decompose_time_series(self, decompose_with_kalman_filter=True, show_decomposed_ts=True):
+
+        # extract recording list of respective stock
+        if self.parser_object.name == GlobalConfig.BITCOIN_STR:
+            recording_list = self.parser_object.single_bitcoin_recording_list
+        elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
+            recording_list = self.parser_object.single_google_recording_list
+        else:
+            print('Valid parameters for <stock> are "Bitcoin" and "Google".')
+            sys.exit(0)
+
+        # extract data
+        time_series_list_original = []
+        time_stamp_list_original = []
+        for single_recording in recording_list:
+            time_stamp_list_original.append(single_recording.time_stamp)
+            if self.time_series == GlobalConfig.OPEN_STR:
+                time_series_list_original.append(single_recording.open)
+            elif self.time_series == GlobalConfig.LOW_STR:
+                time_series_list_original.append(single_recording.low)
+            elif self.time_series == GlobalConfig.HIGH_STR:
+                time_series_list_original.append(single_recording.high)
+            elif self.time_series == GlobalConfig.CLOSE_STR:
+                time_series_list_original.append(single_recording.close)
+            elif self.time_series == GlobalConfig.VOLUME_STR:
+                time_series_list_original.append(single_recording.volume)
+            else:
+                print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+
+        # calculate decomposition
+        if decompose_with_kalman_filter:
+            kal_obj = KalmanFilter(parser_object=self.parser_object,
+                                time_series=self.time_series,
+                                Q=1e-5, R=0.1 ** 2, prediction_time=300)
+            kal_obj.calculate_kalman_filter()
+            self.kalman_object = kal_obj
+            self.decomposed_time_series = seasonal_decompose(x=self.kalman_object.kalman_filter_dict.
+                                                             get(GlobalConfig.KALMAN_FILTER).get(self.time_series)[::-1],
+                                                             model=self.decompose_model, period=self.period)
+
+        else:
+            self.decomposed_time_series = seasonal_decompose(x=time_series_list_original[::-1],
+                                                             model=self.decompose_model, period=self.period)
+
+        # show decomposed time series
+        if show_decomposed_ts:
+            self.decomposed_time_series.plot()
+            plt.show()
+
+        # measure trend strength and seasonal strength of time series
+        try:
+            trend_strength_temp = 1 - ((np.nanstd(self.decomposed_time_series.resid))**2 /
+                                       (np.nanstd(self.decomposed_time_series.resid + self.decomposed_time_series.trend))**2)
+        except RuntimeWarning:
+            trend_strength_temp = 1
+        except ZeroDivisionError:
+            trend_strength_temp = 1
+        trend_strength = np.amax([0, trend_strength_temp])
+        print('Trend strength: ', trend_strength)
+
+        try:
+            seasonal_strength_temp = 1 - ((np.nanstd(self.decomposed_time_series.resid))**2 /
+                                          (np.nanstd(self.decomposed_time_series.resid + self.decomposed_time_series.seasonal))**2)
+        except RuntimeWarning:
+            seasonal_strength_temp = 1
+        except ZeroDivisionError:
+            seasonal_strength_temp = 1
+        seasonal_strength = np.amax([0, seasonal_strength_temp])
+        print('Seasonal strength: ', seasonal_strength)
+
+        print()
+
 
 
 
