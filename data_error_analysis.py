@@ -7,9 +7,9 @@ class FormatError(RuntimeError):
 
 class ErrorAnalyzer:
 
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+    def __init__(self, original, forecast):
+        self.a = original
+        self.b = forecast
 
     def check(self):
         if len(self.a) != len(self.b):
@@ -47,3 +47,6 @@ class ErrorAnalyzer:
             m_b = 1 if (self.b[i+1] >= self.b[i]) else 0
             momentum.append(1 if (m_a == m_b) else -1)
         return np.mean(np.array(momentum))
+
+    def get_correlation(self):
+        return np.corrcoef(self.b, self.a)[0,1]

@@ -155,5 +155,72 @@ class KalmanFilter():
         self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({self.time_series: x_hat})
         self.kalman_filter_dict.get(GlobalConfig.KALMAN_FILTER).update({GlobalConfig.TIMESTAMP_STR: time_stamp_list_original})
 
+class ExponentialSmoothing():
 
+    def __init__(self, parser_object, time_series):
+        self.parser_object = parser_object
+        self.horizon = 1
+        time_stamp_list = []
+        close_list = []
+        for single_google_recording in parser_object.single_google_recording_list:
+            time_stamp_list.append(single_google_recording.time_stamp)
+            close_list.append(single_google_recording.close)
+        self.series = close_list
+        self.time_series = time_series
+        self.time_stamp_list = time_stamp_list
+        self.exponential_smoothing_dict = dict({GlobalConfig.EXPONENTIAL_SMOOTHING: {}})
 
+    def single_exponential_smoothing(self, series, horizon, alpha=0.5):
+        result = [0, series[0]]
+        for i in range(1, len(series) + horizon - 1):
+            if i >= len(series):
+                result.append((series[-1] * alpha) + ((1-alpha) * result[i]))
+            else:
+                result.append((series[i] * alpha) + ((1-alpha) * result[i]))
+        return result[len(series):len(series)+horizon]
+
+    def double_exponential_smoothing(self, series, horizon, alpha=0.5, beta=0.5):
+        result = [0, series[0]]
+        level, trend = series[0], series[1] - series[0]
+        for i in range(1, len(series) + horizon - 1):
+            if i >= len(series):
+                m = i - len(series) + 2
+                result.append(level + m * trend)
+            else:
+                value = series[i]
+                last_level, level = level, alpha * value + (1 - alpha) * (level + trend)
+                trend = beta * (level - last_level) + (1 - beta) * trend
+                result.append(level + trend)
+        return result[len(series):len(series) + horizon]
+
+    def calculate_single_exponential_smoothing(self):
+        if self.parser_object.name == GlobalConfig.BITCOIN_STR:
+            recording_list = self.parser_object.single_bitcoin_recording_list
+        elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
+            recording_list = self.parser_object.single_google_recording_list
+        else:
+            print('Valid parameters for <stock> are "Bitcoin" and "Google".')
+            sys.exit(0)
+
+        preds = []
+        for i in range(1, len(self.series)+1):
+            preds.append(self.single_exponential_smoothing(self.series[:i], 1)[0])
+
+        self.exponential_smoothing_dict.get(GlobalConfig.EXPONENTIAL_SMOOTHING).update({self.time_series: preds})
+        self.exponential_smoothing_dict.get(GlobalConfig.EXPONENTIAL_SMOOTHING).update({GlobalConfig.TIMESTAMP_STR: self.time_stamp_list})
+
+    def calculate_double_exponential_smoothing(self):
+        if self.parser_object.name == GlobalConfig.BITCOIN_STR:
+            recording_list = self.parser_object.single_bitcoin_recording_list
+        elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
+            recording_list = self.parser_object.single_google_recording_list
+        else:
+            print('Valid parameters for <stock> are "Bitcoin" and "Google".')
+            sys.exit(0)
+
+        preds = []
+        for i in range(2, len(self.series)+2):
+            preds.append(self.double_exponential_smoothing(self.series[:i], 1)[0])
+
+        self.exponential_smoothing_dict.get(GlobalConfig.EXPONENTIAL_SMOOTHING).update({self.time_series: preds})
+        self.exponential_smoothing_dict.get(GlobalConfig.EXPONENTIAL_SMOOTHING).update({GlobalConfig.TIMESTAMP_STR: self.time_stamp_list})

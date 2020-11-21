@@ -3,9 +3,9 @@ from global_config import GlobalConfig
 
 from data_pulling import DataPuller
 from data_parsing import BitcoinParser, GoogleParser
-from data_preprocessing import MovingAverage, KalmanFilter
+from data_preprocessing import MovingAverage, KalmanFilter, ExponentialSmoothing
 from data_visualization import BitcoinVisualizer, GoogleVisualizer
-from data_forecasting import SimpleExponentialSmoothing, Arima
+from data_forecasting import SimpleExponentialSmoothingForecaster, Arima
 
 
 if __name__ == '__main__':
@@ -17,15 +17,15 @@ if __name__ == '__main__':
     #==========commands==========
 
     # pull data
-    data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
-                              ticker='GOOGL',
-                              interval='1min')
-    data_puller.pull_data()
+    #data_puller = DataPuller(api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY_EXTENDED_HISTORY,
+    #                          ticker='GOOGL',
+    #                          interval='1min')
+    #data_puller.pull_data()
 
     # parse data
     # bitcoin_parser = BitcoinParser()
     # bitcoin_parser.parse_bitcoin_data()
-    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
+    google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_PATH)
     google_parser.parse_google_data()
 
     # preprocess data
@@ -40,36 +40,40 @@ if __name__ == '__main__':
     #                               Q=1e-5, R=0.1**2, prediction_time=600)
     # bitcoin_kalman.calculate_kalman_filter()
 
-    google_ma = MovingAverage(parser_object=google_parser,
-                              time_series=GlobalConfig.CLOSE_STR,
-                              window_size=7501,
-                              weighted=False,
-                              weights=[0.1, 0.2, 0.3, 0.4])
-    google_ma.calculate_moving_average()
-    google_kalman = KalmanFilter(parser_object=google_parser,
-                                 time_series=GlobalConfig.CLOSE_STR,
-                                 Q=1e-5, R=0.1**2, prediction_time=600)
-    google_kalman.calculate_kalman_filter()
+    #google_ma = MovingAverage(parser_object=google_parser,
+    #                          time_series=GlobalConfig.CLOSE_STR,
+    #                          window_size=7501,
+    #                          weighted=False,
+    #                          weights=[0.1, 0.2, 0.3, 0.4])
+    #google_ma.calculate_moving_average()
+    #google_kalman = KalmanFilter(parser_object=google_parser,
+    #                             time_series=GlobalConfig.CLOSE_STR,
+    #                             Q=1e-5, R=0.1**2, prediction_time=600)
+    #google_kalman.calculate_kalman_filter()
+
+    #google_exp_smth = ExponentialSmoothing(parser_object=google_parser,
+    #                                        time_series=GlobalConfig.CLOSE_STR)
+    #google_exp_smth.calculate_double_exponential_smoothing()
 
     # visualize data
     # bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_ma)
     # bitcoin_visualizer = BitcoinVisualizer(bitcoin_parser, bitcoin_kalman)
     # bitcoin_visualizer.plot_all_in_one_chart()
     #bitcoin_visualizer.plot_moving_average()
-    # bitcoin_visualizer.plot_kalman_filter()
+    #bitcoin_visualizer.plot_kalman_filter()
     #google_visualizer = GoogleVisualizer(google_parser, google_ma)
-    google_visualizer = GoogleVisualizer(google_parser, google_kalman)
+    #google_visualizer = GoogleVisualizer(google_parser, google_kalman)
     #google_visualizer.plot_all_in_one_chart()
     #google_visualizer.plot_moving_average()
-    google_visualizer.plot_kalman_filter()
+    #google_visualizer.plot_kalman_filter()
 
     # exponential smoothing model
-    exponential_smoothing_model = SimpleExponentialSmoothing(google_parser)
+    #exponential_smoothing_model = SimpleExponentialSmoothingForecaster(google_parser)
     #exponential_smoothing_model.predict(type="single")
     #exponential_smoothing_model.predict(type="double")
     #exponential_smoothing_model.predict(type="triple")
-    #arima = Arima(google_parser)
-    #arima.parameter_tune(0.66)
+    arima = Arima(google_parser)
+    arima.parameter_tune(0.33)
 
     # ending time
     ending_time=datetime.now()

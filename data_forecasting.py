@@ -4,10 +4,14 @@ import numpy as np
 import pandas as pd
 import math
 from collections import defaultdict
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
+import os
+import plotly.offline as po
+import plotly.graph_objs as go
+from global_config import GlobalConfig
 
-class SimpleExponentialSmoothing:
+class SimpleExponentialSmoothingForecaster:
 
     def __init__(self, parser_object):
         self.parser_object = parser_object
@@ -23,6 +27,7 @@ class SimpleExponentialSmoothing:
 
         print(datetime.now(), ': Exponential Smoothing Model Received Data')
         self.series = close_list
+        self.time_stamp_list = time_stamp_list
 
     def single_exponential_smoothing(self, series, horizon, alpha=0.5):
         """
@@ -114,9 +119,9 @@ class SimpleExponentialSmoothing:
             sum = sum + (float(series[i+t] - series[i]) / t)
         return sum / t
 
-    def predict(self, seasons=4, alpha=0.5, beta=0.5, gamma=0.5, type="single"):
+    def predict(self, seasons=4, alpha=0.5, beta=0.5, gamma=0.5, type="single", plot=True):
         preds = []
-        for i in range(1, len(self.series)+1):
+        for i in range(1, len(self.series)+2):
             if type == "single":
                 preds.append(self.single_exponential_smoothing(self.series[:i], 1, alpha))
             elif type == "double" and i > 1:
@@ -124,7 +129,31 @@ class SimpleExponentialSmoothing:
             elif type == "triple":
                 preds.append(self.triple_exponential_smoothing(self.series[:i], seasons, 1, alpha, beta, gamma))
         print("Successful prediction for {}".format(type))
-        return preds
+        predictions = []
+        for pred in preds:
+            predictions.append(pred[0])
+        if not plot:
+            return predictions
+
+        open_trace_original = go.Scattergl(x=self.time_stamp_list, y=self.series, mode='lines',
+                                           name='original',
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        open_trace_ma = go.Scattergl(x=self.time_stamp_list, y=predictions, mode='lines',
+                                     name='exponential smoothing - type: '+type,
+                                     opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        # design layout
+        layout = dict(title='Exponential Smoothing',
+                      xaxis=dict(title='Time',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[open_trace_original, open_trace_ma], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.GOOGLE_STR, "exponential_smoothing_plot_{}.html".format(type)), auto_open=False)
+        print(datetime.now(), ': exponential_smoothing_plot created.')
 
 class Arima:
 
@@ -138,20 +167,40 @@ class Arima:
 
         print(datetime.now(), ': Arima Model Received Data')
         self.series = close_list
+        self.time_stamp_list = time_stamp_list
 
     def parameter_tune(self, train_size):
         series = self.series
         size = int(len(series) * train_size)
-        tr, te = series[0:size], series[size:len(x)]
-        hist = [x for x in train]
+        tr, te = series[0:size], series[size:len(series)]
+        hist = [x for x in tr]
         predictions = []
         for timestamp in range(len(te)):
             model = ARIMA(hist, order=(5, 1, 0))
-            model_fit = model.fit(disp=0)
+            model_fit = model.fit()
             output = model_fit.forecast()
             y = output[0]
             predictions.append(y)
             obs = te[timestamp]
             hist.append(obs)
         error = mean_squared_error(te, predictions)
-        return predictions
+
+        open_trace_original = go.Scattergl(x=self.time_stamp_list, y=self.series[size:], mode='lines',
+                                           name='original',
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        open_trace_ma = go.Scattergl(x=self.time_stamp_list, y=predictions, mode='lines',
+                                     name='arima',
+                                     opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        # design layout
+        layout = dict(title='ARIMA',
+                      xaxis=dict(title='Time',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[open_trace_original, open_trace_ma], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.GOOGLE_STR, "arima_plot.html"), auto_open=False)
+        print(datetime.now(), ': ARIMA plot created.')

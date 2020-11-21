@@ -140,9 +140,6 @@ class BitcoinVisualizer:
         print(datetime.now(), ': kalman_filter_plot created.')
 
 
-
-
-
 class GoogleVisualizer:
 
     def __init__(self, parser_object, preprocessor_object):
@@ -282,7 +279,3 @@ class GoogleVisualizer:
                                               GlobalConfig.GOOGLE_STR, "kalman_filter_plot.html"),
                 auto_open=False)
         print(datetime.now(), ': kalman_filter_plot created.')
-
-
-
-
