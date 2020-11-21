@@ -1,15 +1,21 @@
 import os
-from datetime import datetime
+import numpy as np
 import plotly.offline as po
 import plotly.graph_objs as go
+import matplotlib.pyplot as plt
+
+from datetime import datetime
 from global_config import GlobalConfig
+from statsmodels.graphics.tsaplots import plot_acf
+
 
 
 class BitcoinVisualizer:
 
-    def __init__(self, parser_object, preprocessor_object):
+    def __init__(self, parser_object, preprocessor_object=None, forecaster_object=None):
         self.parser_object = parser_object
         self.preprocessor_object = preprocessor_object
+        self.forecaster_object = forecaster_object
 
     def plot_all_in_one_chart(self):
         time_stamp_list = []
@@ -140,9 +146,60 @@ class BitcoinVisualizer:
         print(datetime.now(), ': kalman_filter_plot created.')
 
 
+    def plot_autocorrelation(self):
+
+        high_list = []
+        for idx, single_bitcoin_recording in enumerate(self.parser_object.single_bitcoin_recording_list):
+            if idx % 300 == 0:
+                high_list.append(single_bitcoin_recording.open)
+
+
+        plot_acf(x=high_list, lags=1000, alpha=0.05, use_vlines=True, title='Bitcoin Autocorrelation: Lag=1=5h', zero=True)
+        plt.show()
+
+        print(datetime.now(), ': autocorrelation_plot created.')
+
+
+
+
+
+    def plot_svr_performace(self):
+
+        dates = self.forecaster_object.test_dates
+        actual_prices = self.forecaster_object.y_test
+        predictions = self.forecaster_object.predictions
+        # create traces
+        actual_price_trace = go.Scattergl(x=dates, y=actual_prices, mode='lines',
+                                           name='Actual Prices',
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        predicted_price_trace = go.Scattergl(x=dates, y=predictions, mode='lines',
+                                         name='Predicted prices',
+                                         opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+
+        # design layout
+        layout = dict(title='SVR Regression Predictions',
+                      xaxis=dict(title='Date',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[actual_price_trace, predicted_price_trace], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.BITCOIN_STR, "SVR_predictions_plot.html"),
+                auto_open=False)
+        print(datetime.now(), ': SVR_predictions_plot created.')
+
+
+
+
+
+
+
 class GoogleVisualizer:
 
-    def __init__(self, parser_object, preprocessor_object):
+    def __init__(self, parser_object, preprocessor_object=None):
         self.parser_object = parser_object
         self.preprocessor_object = preprocessor_object
 
@@ -279,3 +336,23 @@ class GoogleVisualizer:
                                               GlobalConfig.GOOGLE_STR, "kalman_filter_plot.html"),
                 auto_open=False)
         print(datetime.now(), ': kalman_filter_plot created.')
+
+
+
+    def plot_autocorrelation(self):
+
+        high_list = []
+        for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):
+            if idx % 300 == 0:
+                high_list.append(single_google_recording.open)
+
+
+        plot_acf(x=high_list, lags=500, alpha=0.05, use_vlines=True, title='Google Autocorrelation: Lag=1=5h', zero=True)
+        plt.show()
+
+        print(datetime.now(), ': autocorrelation_plot created.')
+
+
+    def plot_svr_performance(self):
+
+        pass

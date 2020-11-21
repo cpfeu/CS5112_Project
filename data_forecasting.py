@@ -1,5 +1,7 @@
 from datetime import datetime
+import sys
 import matplotlib.pyplot as plt
+from global_config import GlobalConfig
 import numpy as np
 import pandas as pd
 import math
@@ -10,6 +12,7 @@ import os
 import plotly.offline as po
 import plotly.graph_objs as go
 from global_config import GlobalConfig
+from sklearn.svm import SVR
 
 class SimpleExponentialSmoothingForecaster:
 
@@ -155,6 +158,7 @@ class SimpleExponentialSmoothingForecaster:
                                               GlobalConfig.GOOGLE_STR, "exponential_smoothing_plot_{}.html".format(type)), auto_open=False)
         print(datetime.now(), ': exponential_smoothing_plot created.')
 
+
 class Arima:
 
     def __init__(self, parser_object):
@@ -204,3 +208,54 @@ class Arima:
         po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
                                               GlobalConfig.GOOGLE_STR, "arima_plot.html"), auto_open=False)
         print(datetime.now(), ': ARIMA plot created.')
+
+
+
+class SupportVectorRegression():
+
+    def __init__(self, parser_object, kernel, degree, C):
+        self.parser_object = parser_object
+        self.svr_model = SVR(kernel=kernel, degree=degree, C=C)
+
+    def prepare_for_training(self, train_test_split):
+
+        # extract recording list of respective stock
+        if self.parser_object.name == GlobalConfig.BITCOIN_STR:
+            recording_list = self.parser_object.single_bitcoin_recording_list
+        elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
+            recording_list = self.parser_object.single_google_recording_list
+        else:
+            print('Valid parameters for <stock> are "Bitcoin" and "Google".')
+            sys.exit(0)
+
+        idx_list = []
+        time_stamp_list = []
+        high_list = []
+        for idx, single_recording in enumerate(recording_list):
+            idx_list.append(idx)
+            time_stamp_list.append(single_recording.time_stamp)
+            high_list.append(single_recording.high)
+
+        features = np.expand_dims(np.asarray(idx_list), axis=1)
+        labels = np.asarray(high_list)
+
+        split_index = int(10000*train_test_split)
+        self.train_dates = time_stamp_list[:10000][:split_index]
+        self.test_dates = time_stamp_list[:10000][split_index:]
+        self.X_train = features[:10000][:split_index]
+        self.y_train = labels[:10000][:split_index]
+        self.X_test = features[:10000][split_index:]
+        self.y_test = labels[:10000][split_index:]
+
+
+    def train_model(self):
+        self.prepare_for_training(train_test_split=0.8)
+        self.svr_model.fit(self.X_train, self.y_train)
+
+
+    def test_model(self):
+        self.predictions = self.svr_model.predict(self.X_test)
+        print()
+
+
+

@@ -24,7 +24,7 @@ class GlobalConfig:
     BITCOIN_VOLUME_STR = 'Volume'
 
     # Google parameters
-    GOOGLE_DATA_PATH = LocalConfig.GOOGLE_DATA_PATH
+    GOOGLE_DATA_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
     GOOGLE_DATA_EXTENDED_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
     GOOGLE_STR = 'Google'
     GOOGLE_TIME_STAMP_NAME_STR = 'date'
@@ -39,6 +39,8 @@ class GlobalConfig:
     # Method Strings
     MOVING_AVG_STR = 'Moving_Average'
     KALMAN_FILTER = 'Kalman_Filter'
+    ADDITIVE_DECOMPOSITION = 'additive'
+    MULTIPLICATIVE_DECOMPOSITION = 'multiplicative'
     EXPONENTIAL_SMOOTHING = 'Exponential_Smoothing'
 
     # Time stamp string
