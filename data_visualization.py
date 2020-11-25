@@ -33,11 +33,11 @@ class BitcoinVisualizer:
             low_list.append(single_bitcoin_recording.low)
 
         # create traces
-        open_trace = go.Scattergl(x=time_stamp_list, y=open_list, mode='lines+markers', name=GlobalConfig.OPEN_STR)
-        close_trace = go.Scattergl(x=time_stamp_list, y=close_list, mode='lines+markers', name=GlobalConfig.CLOSE_STR)
-        high_trace = go.Scattergl(x=time_stamp_list, y=high_list, mode='lines+markers', name=GlobalConfig.HIGH_STR)
-        low_trace = go.Scattergl(x=time_stamp_list, y=low_list, mode='lines+markers', name=GlobalConfig.LOW_STR)
-        volume_trace = go.Scattergl(x=time_stamp_list, y=volume_list, mode='lines+markers', name=GlobalConfig.VOLUME_STR)
+        open_trace = go.Scattergl(x=time_stamp_list, y=open_list, mode='lines', name=GlobalConfig.OPEN_STR)
+        close_trace = go.Scattergl(x=time_stamp_list, y=close_list, mode='lines', name=GlobalConfig.CLOSE_STR)
+        high_trace = go.Scattergl(x=time_stamp_list, y=high_list, mode='lines', name=GlobalConfig.HIGH_STR)
+        low_trace = go.Scattergl(x=time_stamp_list, y=low_list, mode='lines', name=GlobalConfig.LOW_STR)
+        volume_trace = go.Scattergl(x=time_stamp_list, y=volume_list, mode='lines', name=GlobalConfig.VOLUME_STR)
 
         # create and plot figure
         figure = dict(data=[open_trace, close_trace, high_trace, low_trace, volume_trace])
@@ -146,15 +146,15 @@ class BitcoinVisualizer:
         print(datetime.now(), ': kalman_filter_plot created.')
 
 
-    def plot_autocorrelation(self):
+    def plot_autocorrelation(self, lags=500):
 
         high_list = []
         for idx, single_bitcoin_recording in enumerate(self.parser_object.single_bitcoin_recording_list):
-            if idx % 300 == 0:
-                high_list.append(single_bitcoin_recording.open)
+            if idx % 360 == 0:
+                high_list.append(single_bitcoin_recording.close)
 
 
-        plot_acf(x=high_list, lags=1000, alpha=0.05, use_vlines=True, title='Bitcoin Autocorrelation: Lag=1=5h', zero=True)
+        plot_acf(x=high_list, lags=lags, alpha=None, use_vlines=True, title='Bitcoin Autocorrelation: Lag: 1=6h', zero=True)
         plt.show()
 
         print(datetime.now(), ': autocorrelation_plot created.')
@@ -165,8 +165,8 @@ class BitcoinVisualizer:
 
     def plot_svr_performace(self):
 
-        dates = self.forecaster_object.test_dates
-        actual_prices = self.forecaster_object.y_test
+        dates = np.concatenate((self.forecaster_object.train_dates, self.forecaster_object.test_dates), axis=0)
+        actual_prices = np.concatenate((self.forecaster_object.y_train, self.forecaster_object.y_test), axis=0)
         predictions = self.forecaster_object.predictions
         # create traces
         actual_price_trace = go.Scattergl(x=dates, y=actual_prices, mode='lines',
@@ -199,9 +199,10 @@ class BitcoinVisualizer:
 
 class GoogleVisualizer:
 
-    def __init__(self, parser_object, preprocessor_object=None):
+    def __init__(self, parser_object, preprocessor_object=None, forecaster_object=None):
         self.parser_object = parser_object
         self.preprocessor_object = preprocessor_object
+        self.forecaster_object = forecaster_object
 
     def plot_all_in_one_chart(self):
         time_stamp_list = []
@@ -219,11 +220,11 @@ class GoogleVisualizer:
             low_list.append(single_google_recording.low)
 
         # create traces
-        open_trace = go.Scattergl(x=time_stamp_list, y=open_list, mode='lines+markers', name=GlobalConfig.OPEN_STR)
-        close_trace = go.Scattergl(x=time_stamp_list, y=close_list, mode='lines+markers', name=GlobalConfig.CLOSE_STR)
-        high_trace = go.Scattergl(x=time_stamp_list, y=high_list, mode='lines+markers', name=GlobalConfig.HIGH_STR)
-        low_trace = go.Scattergl(x=time_stamp_list, y=low_list, mode='lines+markers', name=GlobalConfig.LOW_STR)
-        volume_trace = go.Scattergl(x=time_stamp_list, y=volume_list, mode='lines+markers', name=GlobalConfig.VOLUME_STR)
+        open_trace = go.Scattergl(x=time_stamp_list, y=open_list, mode='lines', name=GlobalConfig.OPEN_STR)
+        close_trace = go.Scattergl(x=time_stamp_list, y=close_list, mode='lines', name=GlobalConfig.CLOSE_STR)
+        high_trace = go.Scattergl(x=time_stamp_list, y=high_list, mode='lines', name=GlobalConfig.HIGH_STR)
+        low_trace = go.Scattergl(x=time_stamp_list, y=low_list, mode='lines', name=GlobalConfig.LOW_STR)
+        volume_trace = go.Scattergl(x=time_stamp_list, y=volume_list, mode='lines', name=GlobalConfig.VOLUME_STR)
 
         # create and plot figure
         figure = dict(data=[open_trace, close_trace, high_trace, low_trace, volume_trace])
@@ -339,20 +340,45 @@ class GoogleVisualizer:
 
 
 
-    def plot_autocorrelation(self):
+    def plot_autocorrelation(self, lags):
 
         high_list = []
         for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):
-            if idx % 300 == 0:
-                high_list.append(single_google_recording.open)
+            if idx % 360 == 0:
+                high_list.append(single_google_recording.close)
 
 
-        plot_acf(x=high_list, lags=500, alpha=0.05, use_vlines=True, title='Google Autocorrelation: Lag=1=5h', zero=True)
+        plot_acf(x=high_list, lags=lags, alpha=None, use_vlines=True, title='Google Autocorrelation: Lag: 1=6h', zero=True)
         plt.show()
 
         print(datetime.now(), ': autocorrelation_plot created.')
 
 
-    def plot_svr_performance(self):
 
-        pass
+    def plot_svr_performace(self):
+
+        dates = np.concatenate((self.forecaster_object.train_dates, self.forecaster_object.test_dates), axis=0)
+        actual_prices = np.concatenate((self.forecaster_object.y_train, self.forecaster_object.y_test), axis=0)
+        predictions = self.forecaster_object.predictions
+        # create traces
+        actual_price_trace = go.Scattergl(x=dates, y=actual_prices, mode='lines',
+                                           name='Actual Prices',
+                                           opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+        predicted_price_trace = go.Scattergl(x=dates, y=predictions, mode='lines',
+                                         name='Predicted prices',
+                                         opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
+
+        # design layout
+        layout = dict(title='SVR Regression Predictions',
+                      xaxis=dict(title='Date',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      yaxis=dict(title='Price [in $]',
+                                 titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
+                      hovermode='closest')
+
+        # create and plot figure
+        figure = dict(data=[actual_price_trace, predicted_price_trace], layout=layout)
+        po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
+                                              GlobalConfig.GOOGLE_STR, "SVR_predictions_plot.html"),
+                auto_open=False)
+        print(datetime.now(), ': SVR_predictions_plot created.')

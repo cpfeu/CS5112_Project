@@ -13,6 +13,7 @@ import plotly.offline as po
 import plotly.graph_objs as go
 from global_config import GlobalConfig
 from sklearn.svm import SVR
+from data_error_analysis import ErrorAnalyzer
 
 class SimpleExponentialSmoothingForecaster:
 
@@ -230,32 +231,43 @@ class SupportVectorRegression():
 
         idx_list = []
         time_stamp_list = []
-        high_list = []
+        close_list = []
         for idx, single_recording in enumerate(recording_list):
             idx_list.append(idx)
             time_stamp_list.append(single_recording.time_stamp)
-            high_list.append(single_recording.high)
+            close_list.append(single_recording.close)
 
         features = np.expand_dims(np.asarray(idx_list), axis=1)
-        labels = np.asarray(high_list)
+        labels = np.asarray(close_list)
 
-        split_index = int(10000*train_test_split)
-        self.train_dates = time_stamp_list[:10000][:split_index]
-        self.test_dates = time_stamp_list[:10000][split_index:]
-        self.X_train = features[:10000][:split_index]
-        self.y_train = labels[:10000][:split_index]
-        self.X_test = features[:10000][split_index:]
-        self.y_test = labels[:10000][split_index:]
+        split_index = int(len(close_list)*train_test_split)
+        self.train_dates = time_stamp_list[:split_index]
+        self.test_dates = time_stamp_list[split_index:]
+        self.X_train = features[:split_index]
+        self.y_train = labels[:split_index]
+        self.X_test = features[split_index:]
+        self.y_test = labels[split_index:]
 
 
     def train_model(self):
         self.prepare_for_training(train_test_split=0.8)
         self.svr_model.fit(self.X_train, self.y_train)
+        print(datetime.now(), ': ', 'SVR training completed')
 
 
     def test_model(self):
-        self.predictions = self.svr_model.predict(self.X_test)
-        print()
+        self.train_predictions = self.svr_model.predict(self.X_train)
+        self.test_predictions = self.svr_model.predict(self.X_test)
+        self.predictions = np.concatenate((self.train_predictions, self.test_predictions), axis=0)
+
+        # get error metrics
+        error_analyzer = ErrorAnalyzer(original=self.y_test, forecast=self.test_predictions)
+        print('RMSE: ', error_analyzer.get_rmse())
+        print('MAE: ', error_analyzer.get_mae())
+        print('Correlation: ', error_analyzer.get_correlation())
+        print('Momentum Error: ', error_analyzer.get_momentum_error())
+
+
 
 
 
