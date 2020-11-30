@@ -24,7 +24,7 @@ class GlobalConfig:
     BITCOIN_VOLUME_STR = 'Volume'
 
     # Google parameters
-    GOOGLE_DATA_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
+    GOOGLE_DATA_PATH = LocalConfig.GOOGLE_DATA_PATH
     GOOGLE_DATA_EXTENDED_PATH = LocalConfig.GOOGLE_DATA_PATH_EXTENDED
     GOOGLE_STR = 'Google'
     GOOGLE_TIME_STAMP_NAME_STR = 'date'

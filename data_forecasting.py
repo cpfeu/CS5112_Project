@@ -1,36 +1,36 @@
 from datetime import datetime
 import sys
-import matplotlib.pyplot as plt
-from global_config import GlobalConfig
 import numpy as np
 import pandas as pd
-import math
-from collections import defaultdict
 from statsmodels.tsa.arima.model import ARIMA
-from sklearn.metrics import mean_squared_error
 import os
 import plotly.offline as po
 import plotly.graph_objs as go
 from global_config import GlobalConfig
 from sklearn.svm import SVR
 
+
 class SimpleExponentialSmoothingForecaster:
 
-    def __init__(self, parser_object):
-        self.parser_object = parser_object
-        self.ALPHA_MIN = 0.01
-        self.ALPHA_MAX = 0.999
-        self.ALPHA_STEP = 0.01
-        self.horizon = 1
-        time_stamp_list = []
-        close_list = []
-        for single_google_recording in parser_object.single_google_recording_list:
-            time_stamp_list.append(single_google_recording.time_stamp)
-            close_list.append(single_google_recording.close)
+    def __init__(self, parser_object=None, time_series=None, time_stamps=None):
+        if parser_object:
+            self.parser_object = parser_object
+            self.horizon = 1
+            time_stamp_list = []
+            close_list = []
+            for single_google_recording in parser_object.single_google_recording_list:
+                time_stamp_list.append(single_google_recording.time_stamp)
+                close_list.append(single_google_recording.close)
 
-        print(datetime.now(), ': Exponential Smoothing Model Received Data')
-        self.series = close_list
-        self.time_stamp_list = time_stamp_list
+            print(datetime.now(), ': Exponential Smoothing Model Received Data')
+            self.series = close_list
+            self.time_stamp_list = time_stamp_list
+        elif time_series and time_stamps:
+            self.series = time_series
+            self.time_stamp_list = time_stamps
+            print(datetime.now(), ': Expontential Smoothing Received Data')
+        else:
+            print(datetime.now(), ': Exponential Smoothing Did Not Receive Data')
 
     def single_exponential_smoothing(self, series, horizon, alpha=0.5):
         """
@@ -124,14 +124,18 @@ class SimpleExponentialSmoothingForecaster:
 
     def predict(self, seasons=4, alpha=0.5, beta=0.5, gamma=0.5, type="single", plot=True):
         preds = []
-        for i in range(1, len(self.series)+2):
+        steps = len(self.series)+2
+        stamps = [int(steps/10)*i for i in range(1, 10)]
+        for i in range(1, steps):
             if type == "single":
                 preds.append(self.single_exponential_smoothing(self.series[:i], 1, alpha))
             elif type == "double" and i > 1:
                 preds.append(self.double_exponential_smoothing(self.series[:i], 1, alpha, beta))
             elif type == "triple":
                 preds.append(self.triple_exponential_smoothing(self.series[:i], seasons, 1, alpha, beta, gamma))
-        print("Successful prediction for {}".format(type))
+            if i in stamps:
+                print(str(datetime.now()) + ': Exponential Smoothing Prediction {}0% Complete'.format(stamps.index(i)+1))
+        print(datetime.now(), 'Successful Exponential Smoothing Prediction for {}'.format(type))
         predictions = []
         for pred in preds:
             predictions.append(pred[0])
@@ -173,30 +177,41 @@ class Arima:
         self.series = close_list
         self.time_stamp_list = time_stamp_list
 
-    def parameter_tune(self, train_size):
-        series = self.series
-        size = int(len(series) * train_size)
-        tr, te = series[0:size], series[size:len(series)]
-        hist = [x for x in tr]
-        predictions = []
-        for timestamp in range(len(te)):
-            model = ARIMA(hist, order=(5, 1, 0))
-            model_fit = model.fit()
-            output = model_fit.forecast()
-            y = output[0]
-            predictions.append(y)
-            obs = te[timestamp]
-            hist.append(obs)
-        error = mean_squared_error(te, predictions)
+    def arimamodel(self, train, test, ar_param, order, ma_param, iterative=True):
+        history = [x for x in train]
+        preds = list()
+        stamps = [int(len(test)/10)*i for i in range(1, 10)]
+        if iterative:
+            for i in range(len(test)):
+                arima_model = ARIMA(history, order=(ar_param, order, ma_param))
+                arima_model = arima_model.fit()
+                output = arima_model.forecast()
+                yhat = output[0]
+                preds.append(yhat)
+                obs = test[i]
+                history.append(obs)
+                if i in stamps:
+                    print(str(datetime.now()) + ': Arima Prediction {}0% Complete: {} out of {}'.format((stamps.index(i)+1), i, len(test)))
+        else:
+            arima_model = ARIMA(history, order=(ar_param, order, ma_param))
+            arima_model = arima_model.fit()
+            preds = arima_model.predict(start=len(history), end=len(history)+len(test)-1)
+        return preds
 
-        open_trace_original = go.Scattergl(x=self.time_stamp_list, y=self.series[size:], mode='lines',
+    def predict_and_plot(self, train_percentage=0.8, ar_param=1, order=1, ma_param=1, iterative=True):
+        percentage = int(len(self.series)*train_percentage)
+        train = self.series[:percentage]
+        test = self.series[percentage:]
+        predict = self.arimamodel(train, test, ar_param, order, ma_param, iterative)
+
+        open_trace_original = go.Scattergl(x=self.time_stamp_list[percentage:], y=self.series[percentage:], mode='lines',
                                            name='original',
                                            opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
-        open_trace_ma = go.Scattergl(x=self.time_stamp_list, y=predictions, mode='lines',
-                                     name='arima',
+        open_trace_ma = go.Scattergl(x=self.time_stamp_list[percentage:], y=predict, mode='lines',
+                                     name='arima of p:{}, d:{}, q:{}'.format(ar_param, order, ma_param),
                                      opacity=1, showlegend=True, hoverinfo='text', legendgroup='lines')
         # design layout
-        layout = dict(title='ARIMA',
+        layout = dict(title='Arima',
                       xaxis=dict(title='Time',
                                  titlefont=dict(family='Courier New, monospace', size=18, color='#7f7f7f')),
                       yaxis=dict(title='Price [in $]',
@@ -206,10 +221,10 @@ class Arima:
         # create and plot figure
         figure = dict(data=[open_trace_original, open_trace_ma], layout=layout)
         po.plot(figure, filename=os.path.join(GlobalConfig.WORKING_DIR_PATH,
-                                              GlobalConfig.GOOGLE_STR, "arima_plot.html"), auto_open=False)
-        print(datetime.now(), ': ARIMA plot created.')
+                                              GlobalConfig.GOOGLE_STR, "arima_plot_({},{},{}).html".format(ar_param, order, ma_param)), auto_open=False)
+        print(datetime.now(), ': arima plot created.')
 
-
+        return predict
 
 class SupportVectorRegression():
 
@@ -256,6 +271,3 @@ class SupportVectorRegression():
     def test_model(self):
         self.predictions = self.svr_model.predict(self.X_test)
         print()
-
-
-
