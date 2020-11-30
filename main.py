@@ -22,8 +22,8 @@ if __name__ == '__main__':
     # data_puller.pull_data()
 
     # =============== parse data ===============
-    bitcoin_parser = BitcoinParser()
-    bitcoin_parser.parse_bitcoin_data()
+    # bitcoin_parser = BitcoinParser()
+    # bitcoin_parser.parse_bitcoin_data()
     google_parser = GoogleParser(data_path=GlobalConfig.GOOGLE_DATA_EXTENDED_PATH)
     google_parser.parse_google_data()
 
@@ -49,10 +49,10 @@ if __name__ == '__main__':
     #                           weighted=False,
     #                           weights=[0.1, 0.2, 0.3, 0.4])
     # google_ma.calculate_moving_average()
-    # google_kalman = KalmanFilter(parser_object=google_parser,
-    #                              time_series=GlobalConfig.HIGH_STR,
-    #                              Q=1e-5, R=0.1**2, prediction_time=360)
-    # google_kalman.calculate_kalman_filter()
+    google_kalman = KalmanFilter(parser_object=google_parser,
+                                 time_series=GlobalConfig.HIGH_STR,
+                                 Q=1e-5, R=0.1**2, prediction_time=360)
+    google_kalman.calculate_kalman_filter()
     # google_dec = DecomposeTimeSeries(parser_object=google_parser,
     #                                  time_series=GlobalConfig.CLOSE_STR,
     #                                  decompose_model=GlobalConfig.ADDITIVE_DECOMPOSITION,
@@ -60,12 +60,16 @@ if __name__ == '__main__':
     # google_dec.decompose_time_series(decompose_with_kalman_filter=True, show_decomposed_ts=True)
 
     # =============== forecasting ===============
-    bitcoin_svr = SupportVectorRegression(parser_object=bitcoin_parser,
-                                          kernel='rbf', degree=12, C=1)
-    bitcoin_svr.train_model()
-    bitcoin_svr.test_model()
-    google_svr = SupportVectorRegression(parser_object=google_parser,
-                                          kernel='rbf', degree=12, C=1)
+    # bitcoin_svr = SupportVectorRegression(kernel='rbf', degree=12, C=1,
+    #                                       parser_object=bitcoin_parser,
+    #                                       moving_average_object=None,
+    #                                       kalman_filter_object=None)
+    # bitcoin_svr.train_model()
+    # bitcoin_svr.test_model()
+    google_svr = SupportVectorRegression(kernel='rbf', degree=12, C=1,
+                                         parser_object=google_parser,
+                                         moving_average_object=None,
+                                         kalman_filter_object=google_kalman)
     google_svr.train_model()
     google_svr.test_model()
 
@@ -73,12 +77,12 @@ if __name__ == '__main__':
     # bitcoin_visualizer_1 = BitcoinVisualizer(bitcoin_parser, None)
     # bitcoin_visualizer_2 = BitcoinVisualizer(bitcoin_parser, bitcoin_kalman)
     # bitcoin_visualizer_3 = BitcoinVisualizer(bitcoin_parser)
-    bitcoin_visualizer_4 = BitcoinVisualizer(bitcoin_parser, forecaster_object=bitcoin_svr)
+    # bitcoin_visualizer_4 = BitcoinVisualizer(bitcoin_parser, forecaster_object=bitcoin_svr)
     # bitcoin_visualizer_1.plot_all_in_one_chart()
     # bitcoin_visualizer_1.plot_moving_average()
     # bitcoin_visualizer_2.plot_kalman_filter()
     # bitcoin_visualizer_3.plot_autocorrelation(lags=500)
-    bitcoin_visualizer_4.plot_svr_performace()
+    # bitcoin_visualizer_4.plot_svr_performace()
     # google_visualizer_1 = GoogleVisualizer(google_parser, None)
     # google_visualizer_2 = GoogleVisualizer(google_parser, google_kalman)
     # google_visualizer_3 = GoogleVisualizer(google_parser)

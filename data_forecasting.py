@@ -214,39 +214,71 @@ class Arima:
 
 class SupportVectorRegression():
 
-    def __init__(self, parser_object, kernel, degree, C):
+    def __init__(self, kernel, degree, C, parser_object, moving_average_object=None, kalman_filter_object=None):
         self.parser_object = parser_object
+        self.moving_average_object = moving_average_object
+        self.kalman_filter_object = kalman_filter_object
         self.svr_model = SVR(kernel=kernel, degree=degree, C=C)
 
     def prepare_for_training(self, train_test_split):
 
         # extract recording list of respective stock
         if self.parser_object.name == GlobalConfig.BITCOIN_STR:
-            recording_list = self.parser_object.single_bitcoin_recording_list
+            if not self.moving_average_object == None:
+                time_series_list = self.moving_average_object.moving_average_data_dict.\
+                    get(GlobalConfig.MOVING_AVG_STR).get(self.moving_average_object.time_series)
+                time_stamp_list = self.moving_average_object.moving_average_data_dict.\
+                    get(GlobalConfig.MOVING_AVG_STR).get(GlobalConfig.TIMESTAMP_STR)
+            elif not self.kalman_filter_object == None:
+                time_series_list = self.kalman_filter_object.kalman_filter_dict. \
+                    get(GlobalConfig.KALMAN_FILTER).get(self.kalman_filter_object.time_series)
+                time_stamp_list = self.kalman_filter_object.kalman_filter_dict. \
+                    get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+            else:
+                recording_list = self.parser_object.single_bitcoin_recording_list
         elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
-            recording_list = self.parser_object.single_google_recording_list
+            if not self.moving_average_object == None:
+                time_series_list = self.moving_average_object.moving_average_data_dict. \
+                    get(GlobalConfig.MOVING_AVG_STR).get(self.moving_average_object.time_series)
+                time_stamp_list = self.moving_average_object.moving_average_data_dict. \
+                    get(GlobalConfig.MOVING_AVG_STR).get(GlobalConfig.TIMESTAMP_STR)
+            elif not self.kalman_filter_object == None:
+                time_series_list = self.kalman_filter_object.kalman_filter_dict. \
+                    get(GlobalConfig.KALMAN_FILTER).get(self.kalman_filter_object.time_series)
+                time_stamp_list = self.kalman_filter_object.kalman_filter_dict. \
+                    get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+            else:
+                recording_list = self.parser_object.single_google_recording_list
         else:
             print('Valid parameters for <stock> are "Bitcoin" and "Google".')
             sys.exit(0)
 
-        idx_list = []
-        time_stamp_list = []
-        close_list = []
-        for idx, single_recording in enumerate(recording_list):
-            idx_list.append(idx)
-            time_stamp_list.append(single_recording.time_stamp)
-            close_list.append(single_recording.close)
+
+        if (self.moving_average_object == None) and (self.kalman_filter_object == None):
+            idx_list = []
+            time_stamp_list = []
+            close_list = []
+            for idx, single_recording in enumerate(recording_list):
+                idx_list.append(idx)
+                time_stamp_list.append(single_recording.time_stamp)
+                close_list.append(single_recording.close)
+
+        else:
+            idx_list = list(range(0, len(time_stamp_list), 1))
+            time_stamp_list = time_stamp_list
+            close_list = time_series_list
+
 
         features = np.expand_dims(np.asarray(idx_list), axis=1)
         labels = np.asarray(close_list)
 
-        split_index = int(len(close_list)*train_test_split)
-        self.train_dates = time_stamp_list[:split_index]
-        self.test_dates = time_stamp_list[split_index:]
-        self.X_train = features[:split_index]
-        self.y_train = labels[:split_index]
-        self.X_test = features[split_index:]
-        self.y_test = labels[split_index:]
+        split_index = int(len(labels[:10000])*train_test_split)
+        self.train_dates = time_stamp_list[:10000][:split_index]
+        self.test_dates = time_stamp_list[:10000][split_index:]
+        self.X_train = features[:10000][:split_index]
+        self.y_train = labels[:10000][:split_index]
+        self.X_test = features[:10000][split_index:]
+        self.y_test = labels[:10000][split_index:]
 
 
     def train_model(self):
