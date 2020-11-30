@@ -229,10 +229,12 @@ class Arima:
 
 class SupportVectorRegression():
 
-    def __init__(self, kernel, degree, C, parser_object, moving_average_object=None, kalman_filter_object=None):
+    def __init__(self, kernel, degree, C, parser_object,
+                 moving_average_object=None, kalman_filter_object=None, exp_smoothing_object=None):
         self.parser_object = parser_object
         self.moving_average_object = moving_average_object
         self.kalman_filter_object = kalman_filter_object
+        self.exp_smoothing_object = exp_smoothing_object
         self.svr_model = SVR(kernel=kernel, degree=degree, C=C)
 
     def prepare_for_training(self, train_test_split):
@@ -249,6 +251,11 @@ class SupportVectorRegression():
                     get(GlobalConfig.KALMAN_FILTER).get(self.kalman_filter_object.time_series)
                 time_stamp_list = self.kalman_filter_object.kalman_filter_dict. \
                     get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+            elif not self.exp_smoothing_object == None:
+                time_series_list = self.exp_smoothing_object.exponential_smoothing_dict. \
+                    get(GlobalConfig.EXPONENTIAL_SMOOTHING).get(self.exp_smoothing_object.time_series)
+                time_stamp_list = self.exp_smoothing_object.exponential_smoothing_dict. \
+                    get(GlobalConfig.EXPONENTIAL_SMOOTHING).get(GlobalConfig.TIMESTAMP_STR)
             else:
                 recording_list = self.parser_object.single_bitcoin_recording_list
         elif self.parser_object.name == GlobalConfig.GOOGLE_STR:
@@ -262,6 +269,11 @@ class SupportVectorRegression():
                     get(GlobalConfig.KALMAN_FILTER).get(self.kalman_filter_object.time_series)
                 time_stamp_list = self.kalman_filter_object.kalman_filter_dict. \
                     get(GlobalConfig.KALMAN_FILTER).get(GlobalConfig.TIMESTAMP_STR)
+            elif not self.exp_smoothing_object == None:
+                time_series_list = self.exp_smoothing_object.exponential_smoothing_dict. \
+                    get(GlobalConfig.EXPONENTIAL_SMOOTHING).get(self.exp_smoothing_object.time_series)
+                time_stamp_list = self.exp_smoothing_object.exponential_smoothing_dict. \
+                    get(GlobalConfig.EXPONENTIAL_SMOOTHING).get(GlobalConfig.TIMESTAMP_STR)
             else:
                 recording_list = self.parser_object.single_google_recording_list
         else:
@@ -269,7 +281,7 @@ class SupportVectorRegression():
             sys.exit(0)
 
 
-        if (self.moving_average_object == None) and (self.kalman_filter_object == None):
+        if (self.moving_average_object == None) and (self.kalman_filter_object == None) and (self.exp_smoothing_object == None):
             idx_list = []
             time_stamp_list = []
             close_list = []
@@ -297,7 +309,7 @@ class SupportVectorRegression():
 
 
     def train_model(self):
-        self.prepare_for_training(train_test_split=0.8)
+        self.prepare_for_training(train_test_split=0.75)
         self.svr_model.fit(self.X_train, self.y_train)
         print(datetime.now(), ': ', 'SVR training completed')
 
