@@ -13,11 +13,26 @@ from statsmodels.graphics.tsaplots import plot_acf
 class BitcoinVisualizer:
 
     def __init__(self, parser_object, preprocessor_object=None, forecaster_object=None):
+
+        '''
+        This is the constructor for a <BitcoinVisualizer> object that holds the following parameter:
+        :param parser_object: <BitcoinParser> or <GoogleParser> - object that holds original time series data
+        :param preprocessor_object: <KalmanFilter>, <MovingAverage>, ... - object that holds preprocessed time series data
+        :param forecaster_object: <SupportVectorRegression>, ... - object that holds predicted time series data
+        '''
+
         self.parser_object = parser_object
         self.preprocessor_object = preprocessor_object
         self.forecaster_object = forecaster_object
 
     def plot_all_in_one_chart(self):
+
+        '''
+        This function plots the raw time series sored in the parser_object.
+        It plots a number of 5 time series into one plot: open, close, low, high and volume
+        :return:
+        '''
+
         time_stamp_list = []
         open_list = []
         close_list = []
@@ -45,8 +60,12 @@ class BitcoinVisualizer:
                                               GlobalConfig.BITCOIN_STR, "All_in_one_plot.html"), auto_open=False)
         print(datetime.now(), ': all_in_one_plot created.')
 
-
     def plot_moving_average(self):
+
+        '''
+        This function plots the calculated moving average against the original time series.
+        :return:
+        '''
 
         # extract data
         time_series_list_original = []
@@ -65,6 +84,18 @@ class BitcoinVisualizer:
                 time_series_list_original.append(single_bitcoin_recording.volume)
             else:
                 print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+
+        time_series_list_original_shortened = []
+        time_stamp_list_original_shortened = []
+        if self.preprocessor_object.modify_time_series:
+            idx = 0
+            for timestamp, price in zip(time_stamp_list_original, time_series_list_original):
+                if idx % 360 == 0:
+                    time_stamp_list_original_shortened.append(timestamp)
+                    time_series_list_original_shortened.append(price)
+                idx += 1
+        time_stamp_list_original = time_stamp_list_original_shortened
+        time_series_list_original = time_series_list_original_shortened
 
         time_series_list_ma = self.preprocessor_object.moving_average_data_dict.\
             get(GlobalConfig.MOVING_AVG_STR).get(self.preprocessor_object.time_series)
@@ -95,6 +126,11 @@ class BitcoinVisualizer:
 
 
     def plot_kalman_filter(self):
+
+        '''
+        This function plots the calculated Kalman Filter times series against the original time series.
+        :return:
+        '''
 
         # extract data
         time_series_list_original = []
@@ -148,13 +184,19 @@ class BitcoinVisualizer:
 
     def plot_autocorrelation(self, lags=500):
 
-        high_list = []
+        '''
+        Time function extracts time series data
+        :param lags: <int> - autocorrelation of a time series is calculated for a time lag of 1 up to this value
+        :return:
+        '''
+
+        time_series = []
         for idx, single_bitcoin_recording in enumerate(self.parser_object.single_bitcoin_recording_list):
             if idx % 360 == 0:
-                high_list.append(single_bitcoin_recording.close)
+                time_series.append(single_bitcoin_recording.close)
 
-
-        plot_acf(x=high_list, lags=lags, alpha=None, use_vlines=True, title='Bitcoin Autocorrelation: Lag: 1=6h', zero=True)
+        plot_acf(x=time_series, lags=lags, alpha=None, use_vlines=True,
+                 title='Bitcoin Autocorrelation: Lag: 1=6h', zero=True)
         plt.show()
 
         print(datetime.now(), ': autocorrelation_plot created.')
@@ -200,11 +242,26 @@ class BitcoinVisualizer:
 class GoogleVisualizer:
 
     def __init__(self, parser_object, preprocessor_object=None, forecaster_object=None):
+
+        '''
+        This is the constructor for a <GoogleVisualizer> object that holds the following parameter:
+        :param parser_object: <BitcoinParser> or <GoogleParser> - object that holds original time series data
+        :param preprocessor_object: <KalmanFilter>, <MovingAverage>, ... - object that holds preprocessed time series data
+        :param forecaster_object: <SupportVectorRegression>, ... - object that holds predicted time series data
+        '''
+
         self.parser_object = parser_object
         self.preprocessor_object = preprocessor_object
         self.forecaster_object = forecaster_object
 
     def plot_all_in_one_chart(self):
+
+        '''
+        This function plots the raw time series sored in the parser_object.
+        It plots a number of 5 time series into one plot: open, close, low, high and volume
+        :return:
+        '''
+
         time_stamp_list = []
         open_list = []
         close_list = []
@@ -240,6 +297,11 @@ class GoogleVisualizer:
 
     def plot_moving_average(self):
 
+        '''
+        This function plots the calculated moving average against the original time series.
+        :return:
+        '''
+
         # extract data
         time_series_list_original = []
         time_stamp_list_original = []
@@ -257,6 +319,19 @@ class GoogleVisualizer:
                 time_series_list_original.append(single_google_recording.volume)
             else:
                 print('Valid parameters for <time_series> are "open", "high", "low", "close" and "volume".')
+
+        time_series_list_original_shortened = []
+        time_stamp_list_original_shortened = []
+        if self.preprocessor_object.modify_time_series:
+            idx = 0
+            for timestamp, price in zip(time_stamp_list_original, time_series_list_original):
+                if idx % 360 == 0:
+                    time_stamp_list_original_shortened.append(timestamp)
+                    time_series_list_original_shortened.append(price)
+                idx += 1
+        time_stamp_list_original = time_stamp_list_original_shortened
+        time_series_list_original = time_series_list_original_shortened
+
 
         time_series_list_ma = self.preprocessor_object.moving_average_data_dict. \
             get(GlobalConfig.MOVING_AVG_STR).get(self.preprocessor_object.time_series)
@@ -288,6 +363,11 @@ class GoogleVisualizer:
 
 
     def plot_kalman_filter(self):
+
+        '''
+        This function plots the calculated Kalman Filter times series against the original time series.
+        :return:
+        '''
 
         # extract data
         time_series_list_original = []
@@ -341,6 +421,12 @@ class GoogleVisualizer:
 
 
     def plot_autocorrelation(self, lags):
+
+        '''
+        Time function extracts time series data
+        :param lags: <int> - autocorrelation of a time series is calculated for a time lag of 1 up to this value
+        :return:
+        '''
 
         high_list = []
         for idx, single_google_recording in enumerate(self.parser_object.single_google_recording_list):

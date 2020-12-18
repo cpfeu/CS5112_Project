@@ -227,17 +227,40 @@ class Arima:
 
         return predict
 
-class SupportVectorRegression():
+class SupportVectorRegression:
 
-    def __init__(self, kernel, degree, C, parser_object,
+    def __init__(self, kernel, degree, C, parser_object, start_idx, end_idx,
                  moving_average_object=None, kalman_filter_object=None, exp_smoothing_object=None):
+
+        '''
+        This it the constructor of a SupprtVetorRegression object that has the following parameters:
+        :param kernel: <str> - either 'linear', 'rbf' or 'poly'
+        :param degree: <int> - degree of approximated function
+        :param C: <float> - regularization parameter
+        :param start_idx: <int> - start index from which SVR shall be trained on
+        :param end_idx: <int> - end index from which SVR shall be trained on
+        :param parser_object: <BitcoinParser> or <GoogleParser> - parser object
+        :param moving_average_object: <MovingAverage> object
+        :param kalman_filter_object: <KalmanFilter> object
+        :param exp_smoothing_object: <ExponentialSmoothing> object
+        '''
+
         self.parser_object = parser_object
         self.moving_average_object = moving_average_object
         self.kalman_filter_object = kalman_filter_object
         self.exp_smoothing_object = exp_smoothing_object
         self.svr_model = SVR(kernel=kernel, degree=degree, C=C)
+        self.start_idx = start_idx
+        self.end_idx = end_idx
 
     def prepare_for_training(self, train_test_split):
+
+
+        '''
+        This function creates a training set as well as a test set for a Support Vector Regression model
+        :param train_test_split: <float> - percentage that shall be used for training
+        :return:
+        '''
 
         # extract recording list of respective stock
         if self.parser_object.name == GlobalConfig.BITCOIN_STR:
@@ -289,32 +312,47 @@ class SupportVectorRegression():
                 idx_list.append(idx)
                 time_stamp_list.append(single_recording.time_stamp)
                 close_list.append(single_recording.close)
+            time_stamp_list = time_stamp_list[::-1]
+            close_list = close_list[::-1]
 
         else:
             idx_list = list(range(0, len(time_stamp_list), 1))
-            time_stamp_list = time_stamp_list
-            close_list = time_series_list
+            time_stamp_list = time_stamp_list[::-1]
+            close_list = time_series_list[::-1]
+
 
 
         features = np.expand_dims(np.asarray(idx_list), axis=1)
         labels = np.asarray(close_list)
 
-        split_index = int(len(labels[:10000])*train_test_split)
-        self.train_dates = time_stamp_list[:10000][:split_index]
-        self.test_dates = time_stamp_list[:10000][split_index:]
-        self.X_train = features[:10000][:split_index]
-        self.y_train = labels[:10000][:split_index]
-        self.X_test = features[:10000][split_index:]
-        self.y_test = labels[:10000][split_index:]
+        split_index = int(len(labels[self.start_idx:self.end_idx])*train_test_split)
+        self.train_dates = time_stamp_list[self.start_idx:self.end_idx][:split_index]
+        self.test_dates = time_stamp_list[self.start_idx:self.end_idx][split_index:]
+        self.X_train = features[self.start_idx:self.end_idx][:split_index]
+        self.y_train = labels[self.start_idx:self.end_idx][:split_index]
+        self.X_test = features[self.start_idx:self.end_idx][split_index:]
+        self.y_test = labels[self.start_idx:self.end_idx][split_index:]
 
 
     def train_model(self):
-        self.prepare_for_training(train_test_split=0.75)
+
+        '''
+        Call function <prepare_for_training> to get a train and a test set
+        :return:
+        '''
+
+        self.prepare_for_training(train_test_split=0.5)
         self.svr_model.fit(self.X_train, self.y_train)
         print(datetime.now(), ': ', 'SVR training completed')
 
 
     def test_model(self):
+
+        '''
+        Test model and store predictions of model
+        :return:
+        '''
+
         self.train_predictions = self.svr_model.predict(self.X_train)
         self.test_predictions = self.svr_model.predict(self.X_test)
         self.predictions = np.concatenate((self.train_predictions, self.test_predictions), axis=0)

@@ -9,11 +9,26 @@ from alpha_vantage.timeseries import TimeSeries
 class DataPuller:
 
     def __init__(self, api_key=GlobalConfig.ALPHA_VANTAGE_API_KEY, ticker='GOOGL', interval='1min'):
+
+        '''
+        :param api_key: <str> - used to make a request at AlphaVantage
+        :param ticker: <str> - the respective stock ticker of the stock exchange
+        :param interval: <str> - detail of data set, e.g. '1min' means that data from every minute is pulled
+        '''
+
         self.api_key = api_key
         self.ticker = ticker
         self.interval = interval
 
     def pull_data(self):
+
+        '''
+        A function that uses the variables of it's respective <DataPuller>-object.
+        There are two API keys that can be used: One API key for extracting data of the last month and
+        another API to extract data of the last two years. In both cases, the downloaded data set is stored
+        in a csv-file in the data_base_path directory specified in the <LocalConfig>-class
+        :return:
+        '''
 
         # pull normal dataset (about 2 weeks of trading)
         if self.api_key == GlobalConfig.ALPHA_VANTAGE_API_KEY:
